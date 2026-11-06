@@ -1,0 +1,22 @@
+#,Item,Qty,Spec,Taobao search,≈ ¥
+1,DC-DC supply,1,"MEAN WELL DDR-30G-5, 9–36 V in, 5 V 6 A, DIN",明纬 DDR-30G-5,132
+2,Isolated RS485 adapter,1,"Waveshare USB TO 2CH RS485, isolated, FT2232HL",微雪 工业级隔离型 USB转2路RS485 FT2232HL,100
+3,Relay module,1,"DIN, 1-ch, SLA-05VDC-SL-C 30 A, jumper H",导轨式 继电器模块 1路 30A 5V 高低电平触发,11
+4,DIN rail,1,"35 × 7.5 mm, cut to 170 mm",35mm导轨 C45 卡轨 铝,5
+5,DIN end stops,2,35 mm rail,导轨终端固定件 E/UK 35mm,2
+6,Main fuse F1,1 + spare,"15 A standard blade, inline holder, 14 AWG",中号插片保险丝座 防水 14AWG + 中号保险丝 15A,10
+7,DDR fuse F2,1 + spare,"2 A mini blade, inline holder",迷你插片保险丝座 防水 + 迷你保险丝 2A,8
+8,Short USB cables,2,"USB-A to USB-B, 20–30 cm",USB2.0 A公对B公 短线 20cm,10
+9,RS485 cable,3 m,"Shielded twisted pair, 2 core + ground",RVSP 屏蔽双绞线 2x0.5,10
+10,Motor power wire,"2 m red, 2 m black",16 AWG silicone,16AWG 硅胶线 红黑,10
+11,Logic wire,1 set,22 AWG silicone,22AWG 硅胶线,8
+12,Pi 5 power leads,4,"2.54 mm female Dupont, 22 AWG",杜邦线 母头 22AWG 2.54,5
+13,Ferrules,1 box,0.5 mm² and 1.5 mm²,管型预绝缘端子 E0508 E1508,10
+14,Lever connectors,4,"3-way, for 24 V and GND splits",WAGO 221-413,12
+15,Heat-set inserts,14,"M3, 5.7 mm long, Ø4.6",M3 热熔铜螺母 滚花 5.7 外径4.6,5
+16,Brass standoffs,11,"M3 × 10 mm, male-female",M3 铜柱 10mm 单头,5
+17,Screws,20,"M3 × 6 (boards), M3 × 8 + washers (rail)",M3 内六角螺丝 6mm 8mm,5
+18,Case mounting,4 each,M5 T-nuts for 4040 + M5 × 12 bolts,4040 欧标 M5 T型螺母 + M5×12 内六角,8
+19,Cable grommets,1 set,Ø8 / Ø10 grommets + M12 gland (battery),橡胶护线圈 8mm 10mm + M12 尼龙防水接头,8
+20,Pi 5 active cooler,1,"Official, only if not owned",树莓派5 官方主动散热器,40
+,Total,,,,404
