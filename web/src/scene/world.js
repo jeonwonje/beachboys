@@ -5,14 +5,61 @@ import * as THREE from 'three';
 export const SHORE_Z = 8.4; // mean waterline. +z is out to sea.
 export const PATH_Z = 5; // the wet band the rover works along.
 
+// Noise comes from a baked, tiling texture instead of being computed per pixel.
+// It costs one fetch instead of dozens of hash calls, and its mipmaps stop the
+// fine grain shimmering in the distance.
+const NOISE_CELLS = 16;
 const NOISE = /* glsl */ `
-  float hash(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
-  float vnoise(vec2 p){
-    vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
-    return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);
-  }
-  float fbm(vec2 p){ float a=.5,s=0.; for(int i=0;i<4;i++){ s+=a*vnoise(p); p=p*2.03+vec2(17.,9.); a*=.5; } return s; }
+  uniform sampler2D uNoise;
+  float vnoise(vec2 p){ return texture2D(uNoise,p/${NOISE_CELLS}.).g; }
+  float fbm(vec2 p){ return texture2D(uNoise,p/${NOISE_CELLS}.).r; }
 `;
+
+function makeNoiseTexture(anisotropy) {
+  const size = 512;
+  let seed = 7;
+  const rnd = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  // One lattice per octave, wrapped so the texture tiles.
+  const lattice = (cells) => Float32Array.from({ length: cells * cells }, rnd);
+  const smooth = (t) => t * t * (3 - 2 * t);
+  const sample = (lat, cells, u, v) => {
+    const x = u * cells;
+    const y = v * cells;
+    const xi = Math.floor(x);
+    const yi = Math.floor(y);
+    const fx = smooth(x - xi);
+    const fy = smooth(y - yi);
+    const at = (i, j) => lat[((j + cells) % cells) * cells + ((i + cells) % cells)];
+    const a = at(xi, yi) + (at(xi + 1, yi) - at(xi, yi)) * fx;
+    const b = at(xi, yi + 1) + (at(xi + 1, yi + 1) - at(xi, yi + 1)) * fx;
+    return a + (b - a) * fy;
+  };
+  const octaves = [16, 32, 64, 128].map((cells, i) => ({ cells, lat: lattice(cells), amp: 0.5 / 2 ** i }));
+  const single = lattice(NOISE_CELLS);
+  const data = new Uint8Array(size * size * 2);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const u = x / size;
+      const v = y / size;
+      let f = 0;
+      for (const o of octaves) f += o.amp * sample(o.lat, o.cells, u, v);
+      const i = (y * size + x) * 2;
+      data[i] = f * 255;
+      data[i + 1] = sample(single, NOISE_CELLS, u, v) * 255;
+    }
+  }
+  const tex = new THREE.DataTexture(data, size, size, THREE.RGFormat, THREE.UnsignedByteType);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.generateMipmaps = true;
+  tex.anisotropy = anisotropy;
+  tex.needsUpdate = true;
+  return tex;
+}
 
 // Time of day along the scroll, from dawn through bright morning to dusk.
 export const PALETTES = {
@@ -57,7 +104,8 @@ function makeSky(uniforms) {
   });
   const mesh = new THREE.Mesh(new THREE.SphereGeometry(900, 32, 16), mat);
   mesh.frustumCulled = false;
-  mesh.renderOrder = -10;
+  // Drawn after everything solid, so hidden sky is never shaded.
+  mesh.renderOrder = 2;
   return mesh;
 }
 
@@ -75,6 +123,7 @@ function makeGround(uniforms) {
       void main(){
         vec2 p = vW.xz;
         float dist = length(vW-uCam);
+        vec3 V = normalize(uCam-vW);
 
         // Swash: two slow waves running up and down an uneven beach.
         float edge = uShore + (fbm(vec2(p.x*.09,3.))-.5)*3.0;
@@ -82,68 +131,74 @@ function makeGround(uniforms) {
                     + sin(uTime*.23 - p.x*.033)*.5;
         float line = edge + swash*.9 + (fbm(vec2(p.x*1.1,uTime*.2))-.5)*.5;
         float highWater = edge - 1.6;
-
-        // Sand, with fine grain near the camera and ripples further up the beach.
-        float grain = fbm(p*38.)*.5 + vnoise(p*170.)*.5;
-        float ripple = sin((p.y + fbm(p*.5)*2.2)*17.)*.5+.5;
-        float dunes = fbm(p*.42);
-        vec3 dry = mix(vec3(.80,.68,.50),vec3(.93,.84,.68),dunes);
-        dry *= .92 + .13*grain + .035*ripple*smoothstep(-2.,3.,highWater-p.y);
-        vec3 wetSand = mix(vec3(.43,.35,.27),vec3(.56,.47,.36),dunes)*(.93+.12*grain);
-
-        float wet = smoothstep(highWater-3.2,highWater+.5,p.y);
-        wet = clamp(wet + .22*(fbm(p*.9)-.5),0.,1.);
-        vec3 sand = mix(dry,wetSand,wet);
-
-        // Wet sand holds a thin sheen of sky.
-        vec3 V = normalize(uCam-vW);
-        float fres = pow(1.-max(V.y,0.),3.);
-        vec3 sky = mix(uHorizon,uTop,.25);
-        sand = mix(sand,sky,wet*(.10+.38*fres));
-        vec3 H = normalize(V+uSunDir);
-        sand += uSunColor*wet*pow(max(H.y,0.),90.)*.5;
-
-        // Faint high-tide wrack line.
-        float wrack = smoothstep(.42,.0,abs(p.y-(highWater-3.)-fbm(p*.4)*1.2))*(.5+.5*vnoise(p*7.));
-        sand = mix(sand,sand*.74,wrack*.5);
-
-        // Wheel tracks behind the rover: two lugged strips.
-        if(p.x<uRoverX-.1 && p.x>uStartX-.2){
-          float tz = abs(abs(p.y-uPathZ)-.27);
-          float tread = .72+.28*step(.5,fract(p.x*7.+abs(p.y-uPathZ)*6.));
-          float t = smoothstep(.095,.07,tz);
-          sand = mix(sand,sand*.70*tread,t);
-          float swept = smoothstep(.2,.17,abs(p.y-uPathZ));
-          sand = mix(sand,sand*(.96+.05*vnoise(p*vec2(30.,90.))),swept*.8);
-        }
-        // Soft highlight of the wet band, used by the problem chapter.
-        float band = smoothstep(.3,.0,abs(p.y-(line-3.3))-2.3);
-        sand = mix(sand,sand+vec3(.20,.09,.0),band*uHighlight*.55);
-
-        // Water.
         float d = p.y-line;
-        float depth = clamp(d/16.,0.,1.);
-        vec2 w = p*.32 + vec2(uTime*.05,uTime*.09);
-        vec2 w2 = p*1.1 - vec2(uTime*.08,uTime*.05);
-        float wv = fbm(w)*.6+fbm(w2)*.4;
-        vec3 nrm = normalize(vec3((fbm(w+vec2(.05,0.))-fbm(w))*3.,1.,(fbm(w+vec2(0.,.05))-fbm(w))*3.));
-        float wf = pow(1.-max(dot(V,nrm),0.),4.);
-        vec3 shallow = mix(uSea*1.3+vec3(.04,.17,.13),wetSand,.22);
-        vec3 water = mix(shallow,uSea,smoothstep(0.,.45,depth));
-        water = mix(water,mix(uHorizon,uTop,.55),clamp(wf*.8+.04,0.,.6));
-        float glint = pow(max(dot(reflect(-uSunDir,nrm),V),0.),170.);
-        water += uSunColor*glint*(1.2+wv);
-
-        vec3 col;
         float waterMask = smoothstep(-.04,.09,d);
-        col = mix(sand,water,waterMask);
+
+        // Most pixels are entirely sand or entirely sea, so only do one.
+        vec3 sand = vec3(0.);
+        if(waterMask < 1.){
+          // Sand, with fine grain near the camera and ripples up the beach.
+          float grain = fbm(p*38.)*.5 + vnoise(p*170.)*.5;
+          float ripple = sin((p.y + fbm(p*.5)*2.2)*17.)*.5+.5;
+          float dunes = fbm(p*.42);
+          vec3 dry = mix(vec3(.80,.68,.50),vec3(.93,.84,.68),dunes);
+          dry *= .92 + .13*grain + .035*ripple*smoothstep(-2.,3.,highWater-p.y);
+          vec3 wetSand = mix(vec3(.43,.35,.27),vec3(.56,.47,.36),dunes)*(.93+.12*grain);
+
+          float wet = smoothstep(highWater-3.2,highWater+.5,p.y);
+          wet = clamp(wet + .22*(fbm(p*.9)-.5),0.,1.);
+          sand = mix(dry,wetSand,wet);
+
+          // Wet sand holds a thin sheen of sky.
+          float fres = pow(1.-max(V.y,0.),3.);
+          vec3 sky = mix(uHorizon,uTop,.25);
+          sand = mix(sand,sky,wet*(.10+.38*fres));
+          vec3 H = normalize(V+uSunDir);
+          sand += uSunColor*wet*pow(max(H.y,0.),90.)*.5;
+
+          // Faint high-tide wrack line.
+          float wrack = smoothstep(.42,.0,abs(p.y-(highWater-3.)-fbm(p*.4)*1.2))*(.5+.5*vnoise(p*7.));
+          sand = mix(sand,sand*.74,wrack*.5);
+
+          // Wheel tracks behind the rover: two lugged strips.
+          if(p.x<uRoverX-.1 && p.x>uStartX-.2){
+            float tz = abs(abs(p.y-uPathZ)-.27);
+            float tread = .72+.28*step(.5,fract(p.x*7.+abs(p.y-uPathZ)*6.));
+            float t = smoothstep(.095,.07,tz);
+            sand = mix(sand,sand*.70*tread,t);
+            float swept = smoothstep(.2,.17,abs(p.y-uPathZ));
+            sand = mix(sand,sand*(.96+.05*vnoise(p*vec2(30.,90.))),swept*.8);
+          }
+          // Soft highlight of the wet band, used by the problem chapter.
+          float band = smoothstep(.3,.0,abs(p.y-(line-3.3))-2.3);
+          sand = mix(sand,sand+vec3(.20,.09,.0),band*uHighlight*.55);
+        }
+
+        vec3 col = sand;
+        if(waterMask > 0.){
+          float depth = clamp(d/16.,0.,1.);
+          vec2 w = p*.32 + vec2(uTime*.05,uTime*.09);
+          vec2 w2 = p*1.1 - vec2(uTime*.08,uTime*.05);
+          float w0 = fbm(w);
+          float wv = w0*.6+fbm(w2)*.4;
+          vec3 nrm = normalize(vec3((fbm(w+vec2(.05,0.))-w0)*3.,1.,(fbm(w+vec2(0.,.05))-w0)*3.));
+          float wf = pow(1.-max(dot(V,nrm),0.),4.);
+          vec3 shallow = mix(uSea*1.3+vec3(.04,.17,.13),vec3(.5,.42,.32),.22);
+          vec3 water = mix(shallow,uSea,smoothstep(0.,.45,depth));
+          water = mix(water,mix(uHorizon,uTop,.55),clamp(wf*.8+.04,0.,.6));
+          float glint = pow(max(dot(reflect(-uSunDir,nrm),V),0.),170.);
+          water += uSunColor*glint*(1.2+wv);
+          col = mix(sand,water,waterMask);
+        }
 
         // Foam at the edge, plus broken lines just offshore.
-        float fn = fbm(p*vec2(1.7,3.)+vec2(0.,uTime*.12));
-        float foam = smoothstep(.34,.0,abs(d-.04))*smoothstep(.22,.62,fn+.2);
-        float lace = smoothstep(.55,.72,fbm(p*vec2(2.6,4.2)-vec2(uTime*.06,uTime*.1)))*smoothstep(2.4,.2,d)*step(0.,d);
-        float swell = smoothstep(.05,.0,abs(fract(d*.14-uTime*.035)-.5)-.01)*smoothstep(14.,1.,d)*step(.3,d)*smoothstep(.5,.72,fn);
-        col = mix(col,vec3(.97,.98,.96),clamp(foam*.95+lace*.45+swell*.28,0.,1.));
+        if(d > -.5 && d < 16.){
+          float fn = fbm(p*vec2(1.7,3.)+vec2(0.,uTime*.12));
+          float foam = smoothstep(.34,.0,abs(d-.04))*smoothstep(.22,.62,fn+.2);
+          float lace = smoothstep(.55,.72,fbm(p*vec2(2.6,4.2)-vec2(uTime*.06,uTime*.1)))*smoothstep(2.4,.2,d)*step(0.,d);
+          float swell = smoothstep(.05,.0,abs(fract(d*.14-uTime*.035)-.5)-.01)*smoothstep(14.,1.,d)*step(.3,d)*smoothstep(.5,.72,fn);
+          col = mix(col,vec3(.97,.98,.96),clamp(foam*.95+lace*.45+swell*.28,0.,1.));
+        }
 
         // Light.
         float lit = .78 + .32*max(uSunDir.y,0.);
@@ -158,6 +213,8 @@ function makeGround(uniforms) {
   });
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2400, 2400).rotateX(-Math.PI / 2), mat);
   mesh.frustumCulled = false;
+  // Drawn after the machine, so sand hidden behind it is never shaded.
+  mesh.renderOrder = 1;
   return mesh;
 }
 
@@ -211,8 +268,9 @@ function makeHorizon() {
   return group;
 }
 
-export function createWorld(scene) {
+export function createWorld(scene, renderer) {
   const shared = {
+    uNoise: { value: makeNoiseTexture(Math.min(4, renderer.capabilities.getMaxAnisotropy())) },
     uTime: { value: 0 },
     uRoverX: { value: 0 },
     uStartX: { value: 0 },
@@ -242,7 +300,7 @@ export function createWorld(scene) {
   scene.add(hemi, sun, sun.target);
 
   const shadowPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(40, 40).rotateX(-Math.PI / 2),
+    new THREE.PlaneGeometry(6, 6).rotateX(-Math.PI / 2), // the shadow camera's reach
     new THREE.ShadowMaterial({ opacity: 0.34, color: '#2a1d10' }),
   );
   shadowPlane.position.y = 0.002;

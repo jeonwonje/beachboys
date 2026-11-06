@@ -9,8 +9,8 @@
 // - compresses everything with meshopt
 import { Document, NodeIO } from '@gltf-transform/core';
 import { EXTMeshoptCompression, KHRMeshQuantization } from '@gltf-transform/extensions';
-import { meshopt } from '@gltf-transform/functions';
-import { MeshoptDecoder, MeshoptEncoder } from 'meshoptimizer';
+import { meshopt, simplify, weld } from '@gltf-transform/functions';
+import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
 import * as THREE from 'three';
 import { toCreasedNormals, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -24,6 +24,7 @@ if (!input || !output) {
 
 await MeshoptDecoder.ready;
 await MeshoptEncoder.ready;
+await MeshoptSimplifier.ready;
 const io = new NodeIO().registerExtensions([EXTMeshoptCompression, KHRMeshQuantization]).registerDependencies({
   'meshopt.decoder': MeshoptDecoder,
   'meshopt.encoder': MeshoptEncoder,
@@ -162,7 +163,17 @@ for (const { name, geometry } of parts) {
   scene.addChild(doc.createNode(name).setMesh(mesh));
 }
 
+// Remove triangles that change the outline by less than about half a millimetre.
+await doc.transform(
+  weld(),
+  simplify({ simplifier: MeshoptSimplifier, ratio: 0, error: 0.0005, lockBorder: true }),
+);
 await doc.transform(meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
+let kept = 0;
+for (const m of doc.getRoot().listMeshes()) {
+  for (const prim of m.listPrimitives()) kept += prim.getIndices().getCount() / 3;
+}
+console.log(`simplified ${totalTris} -> ${kept} tris`);
 mkdirSync(dirname(output), { recursive: true });
 const glb = await io.writeBinary(doc);
 writeFileSync(output, glb);

@@ -78,11 +78,11 @@
     <p class="sheet-lede">The first idea was a whole robot. It was rejected inside a month. Almost everything since has been a smaller thing that broke, and told us what to do next.</p>
     <ol class="path">
       <li><time>Nov 2025</time><div class="path-card nopic"><h3>A whole beach robot</h3><p>Our first proposal: a full machine with a 50 L bin. Our supervisor's challenge was blunt: don't build another platform. Build the part existing robots are missing.</p><span class="verdict no">Rejected</span></div></li>
-      <li><time>Mar 2026</time><div class="path-card"><img loading="lazy" src="media/cardboard.webp" alt="Cardboard conveyor prototype"><h3>Cardboard, by hand</h3><p>Scoops just pushed debris forward. A moving belt with spokes actually lifted it. That one afternoon chose the architecture.</p><span class="verdict yes">Conveyor wins</span></div></li>
-      <li><time>Mar 2026</time><div class="path-card"><img loading="lazy" src="media/sketch-screw.webp" alt="Hand sketch of a drum with an Archimedes screw"><h3>Screws and sieves</h3><p>An Archimedes screw clogged in wet sand. A vibrating mesh box did poorly. A hand-spun mesh drum dropped most of its wet sand in one turn.</p><span class="verdict yes">Drum wins</span></div></li>
-      <li><time>Apr 2026</time><div class="path-card"><img loading="lazy" src="media/interim-conveyor.webp" alt="Semester 1 conveyor prototype close-up"><h3>Interim prototypes</h3><p>Bench rigs for each function. Conveyor current rose from about 0.3 A to 0.9 A as the spokes dug into dry sand. Seaweed came up, then tangled.</p><span class="tag m">Measured</span></div></li>
+      <li><time>Mar 2026</time><div class="path-card"><img loading="lazy" src="media/cardboard.webp" alt="Cardboard conveyor prototype"><h3>Cardboard, by hand</h3><p>Scoops just pushed debris forward. A moving belt with spokes actually lifted it, which pointed us towards a conveyor.</p><span class="verdict yes">Conveyor wins</span></div></li>
+      <li><time>Mar 2026</time><div class="path-card"><img loading="lazy" src="media/sketch-screw.webp" alt="Hand sketch of a drum with an Archimedes screw"><h3>Screws and sieves</h3><p>We modelled an Archimedes screw and tried a vibrating mesh box. A hand-held rotating mesh drum shook wet sand loose best, so it replaced the vibrating bin.</p><span class="verdict yes">Drum wins</span></div></li>
+      <li><time>Apr 2026</time><div class="path-card"><img loading="lazy" src="media/interim-conveyor.webp" alt="Semester 1 conveyor prototype close-up"><h3>Interim prototypes</h3><p>Bench rigs for each function. Our interim notes put conveyor current at about 0.3 A running free and 0.9 A digging into dry sand. A seaweed test followed.</p><span class="tag e">From our notes</span></div></li>
       <li><time>Jun 2026</time><div class="path-card"><img loading="lazy" src="media/turtlebot.webp" alt="Small test robot on sand"><h3>Finding a carrier</h3><p>The test robot got stuck in sand within about a minute. We borrowed a Copernicus rover with a dead control board and bypassed it, driving the motors directly over RS-485.</p><a class="more" href="https://github.com/eggsacc/copernicus-repair">The repair, on GitHub</a></div></li>
-      <li><time>5 Aug 2026</time><div class="path-card"><img loading="lazy" src="media/copernicus-wet-beach.webp" alt="Orange and grey Copernicus rover on wet sand with ships behind"><h3>First wet sand</h3><p>The bare carrier drove onto wet sand at West Coast. So the platform was settled, and everything else had to be built by October.</p><span class="verdict yes">It drives</span></div></li>
+      <li><time>5 Aug 2026</time><div class="path-card"><video muted loop playsinline preload="none" data-autoplay poster="media/copernicus-beach-poster.webp" src="media/copernicus-beach.mp4" aria-label="Copernicus rover driving on wet sand with a team member walking alongside"></video><h3>First wet sand</h3><p>The bare carrier drove onto wet sand at West Coast. So the platform was settled, and everything else had to be built by October.</p><span class="verdict yes">It drives</span></div></li>
       <li><time>Sep 2026</time><div class="path-card"><img loading="lazy" src="media/drum-bin-above.webp" alt="Half-drum and bin seen from above"><h3>Cut the drum in half</h3><p>A full drum left nowhere for the conveyor to reach into, so light items fell beside it. Removing the top half fixed the handoff. It now rocks instead of spins.</p><span class="verdict yes">Half-drum</span></div></li>
     </ol>
   </div>
@@ -136,6 +136,7 @@
         <div data-part="d_drive"><dt>Drive</dt><dd>Sprung friction wheel, on its fourth try after capstan rope and GT2 belt both slipped</dd></div>
         <div data-part="d_frame"><dt>Stroke</dt><dd>Rocks between two limit switches, coasting 150 ms at each end</dd></div>
       </dl>
+      <figure class="inline-video"><video muted loop playsinline preload="none" data-autoplay poster="media/halfdrum-separating.webp" src="media/system-run.mp4" aria-label="The conveyor and half-drum running on the robot"></video><figcaption>The full system running, 19 Oct</figcaption></figure>
     </div>
   </div>
 </section>
@@ -164,7 +165,7 @@
       <p>The carrier's spare 24 V rail turned out to be a current-limited fan output with no published rating. So the module got a separate 24 V, 504 Wh sodium-ion pack, and can be built, tested and removed without touching the rover.</p>
       <figure class="wiring"><a href="media/wiring.webp"><img loading="lazy" src="media/wiring.webp" alt="Wiring diagram of the battery, breaker, fuse, motor driver, Arduino Mega, motors and limit switches"></a></figure>
       <dl class="spec plain">
-        <div><dt>Controller</dt><dd>Arduino Mega 2560. Replaced a Raspberry Pi, whose 3.3 V logic didn't suit the driver</dd></div>
+        <div><dt>Controller</dt><dd>Arduino Mega 2560. It took over limit-switch and motor control after the Raspberry Pi and first driver failed on 20 Oct</dd></div>
         <div><dt>Driver</dt><dd>XY160D dual H-bridge, about 7 A per channel</dd></div>
         <div><dt>Switches</dt><dd>Normally closed, so a broken wire reads the same as a hit and the drum stops</dd></div>
         <div><dt>Runtime</dt><dd>Roughly 6 h at about 80 W <span class="tag e">Nameplate estimate</span></dd></div>
@@ -262,14 +263,19 @@
 </section>
 
 <!-- ─────────── 6. Timeline ─────────── -->
-<section id="timeline" hidden class="ch" data-ch="timeline" data-label="Timeline">
+<section id="timeline" class="ch" data-ch="timeline" data-label="Timeline">
   <div class="sheet wide tint">
     <p class="eyebrow">What was actually done, and when</p>
     <h2>The Gantt chart we planned, against what happened.</h2>
-    <p class="sheet-lede" id="gantt-lede">Rebuilt from the team's project chat, so the dates are the days things actually happened. Tap a bar for what came of it.</p>
+    <p class="sheet-lede" id="gantt-lede">Rebuilt from the team's project chat, up to 29 Oct 2026, so the dates are the days things actually happened. Tap a bar for what came of it.</p>
     <div class="gantt-controls" id="gantt-controls"></div>
     <div id="gantt" class="gantt" tabindex="0" role="region" aria-label="Project timeline, scrollable"></div>
     <div id="gantt-detail" class="gantt-detail" aria-live="polite"></div>
+    <details class="pva">
+      <summary>Planned dates against actual dates, task by task</summary>
+      <p class="fine">The vibrating bin in the plan was replaced by the drum in June, so its planned tests never ran. "No record" means nothing in the chat up to 29 Oct, not proof that it didn't happen later.</p>
+      <div class="table-wrap"><table class="log" id="pva"></table></div>
+    </details>
   </div>
 </section>
 

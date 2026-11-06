@@ -71,7 +71,7 @@ function supportsWebGL() {
   if (params.has('nogl')) return false;
   try {
     const c = document.createElement('canvas');
-    return !!(c.getContext('webgl2') || c.getContext('webgl'));
+    return !!c.getContext('webgl2');
   } catch {
     return false;
   }
@@ -80,17 +80,26 @@ function supportsWebGL() {
 async function start3D() {
   const canvas = document.getElementById('stage');
   const mobile = innerWidth < 760;
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !mobile, powerPreference: 'high-performance' });
-  let dpr = Math.min(devicePixelRatio, mobile ? 1.5 : 1.75);
+  // Above about 1.5x the pixels are already small enough that MSAA adds little.
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !mobile && devicePixelRatio < 1.5, powerPreference: 'high-performance' });
+  // Spend pixels up to a budget. Beyond it the extra sharpness can't be seen on
+  // a moving scene, but the cost still scales with every pixel.
+  const budget = mobile ? 2.2e6 : 4.6e6;
+  const fitDpr = () =>
+    Math.min(devicePixelRatio, mobile ? 1.5 : 1.75, Math.sqrt(budget / (innerWidth * innerHeight)));
+  let dprScale = 1;
+  let dpr = fitDpr();
   renderer.setPixelRatio(dpr);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.needsUpdate = true;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 2400);
-  const world = createWorld(scene);
+  const world = createWorld(scene, renderer);
   scene.environment = makeEnvironment(renderer);
 
   const bar = document.querySelector('.loader-bar i');
@@ -145,6 +154,8 @@ async function start3D() {
   function resize() {
     const w = innerWidth;
     const h = innerHeight;
+    dpr = fitDpr() * dprScale;
+    renderer.setPixelRatio(dpr);
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
@@ -164,12 +175,19 @@ async function start3D() {
   const look = new THREE.Vector3();
   const pinP = new THREE.Vector3();
   let activeRail = -1;
-  let frameTimes = [];
+  let slowSum = 0;
+  let slowCount = 0;
+  let frameNo = 0;
+  let shadowKey = '';
+  let lastGrade = -1;
 
   function frame() {
     if (!visible) return;
-    const dt = Math.min(clock.getDelta(), 0.05);
+    requestAnimationFrame(frame);
+    const rawDt = clock.getDelta();
+    const dt = Math.min(rawDt, 0.05);
     const time = clock.elapsedTime;
+    frameNo++;
 
     const targetCh = chapterAt(scrollY);
     chapter = reduced || params.has('snap') ? targetCh : chapter + (targetCh - chapter) * Math.min(1, dt * 5);
@@ -194,6 +212,9 @@ async function start3D() {
       roll: rollDist,
       highlight,
     });
+    // Behind a full paper sheet only the margins show, so draw less often.
+    const covered = s.dim > 0.9;
+    if (covered && frameNo % 3 !== 0) return;
     const passP = THREE.MathUtils.clamp(chapter - passIdx, 0, 1);
     flow.update(dt, { flow: s.flow * motion, fill: Math.max(passP, chapter > passIdx + 1 ? 1 : 0) });
     debris.update(dt, { tide: s.tide, roverX: s.rover });
@@ -230,7 +251,19 @@ async function start3D() {
     }
 
     world.update(time, camera.position, s.rover);
-    grade.style.opacity = s.dim * 0.55;
+    const g = Math.round(s.dim * 55) / 100;
+    if (g !== lastGrade) {
+      grade.style.opacity = g;
+      lastGrade = g;
+    }
+
+    // Shadows only change when the machine or the sun moves.
+    const key = [s.rover, s.explode, s.time, s.focus.conveyor, s.focus.drum, s.focus.bin].map((v) => v.toFixed(3)).join();
+    const moving = s.belt > 0.01 || s.rock > 0.01 || Math.abs(dRover) > 0.0005;
+    if (key !== shadowKey || (moving && frameNo % 2 === 0)) {
+      renderer.shadowMap.needsUpdate = true;
+      shadowKey = key;
+    }
 
     renderer.render(scene, camera);
 
@@ -264,18 +297,17 @@ async function start3D() {
       activeRail = ri;
     }
 
-    // If it can't keep up, give up some resolution before giving up smoothness.
-    frameTimes.push(dt);
-    if (frameTimes.length === 90) {
-      const avg = frameTimes.reduce((a, b) => a + b, 0) / 90;
-      frameTimes = [];
-      if (avg > 1 / 28 && dpr > 0.75) {
-        dpr = Math.max(0.75, dpr - 0.25);
-        renderer.setPixelRatio(dpr);
+    // If it can't hold a smooth rate, trade a little resolution for it.
+    slowSum += Math.min(rawDt, 0.25); // a single long pause isn't a slow machine
+    if (++slowCount === 60) {
+      const avg = slowSum / 60;
+      slowSum = 0;
+      slowCount = 0;
+      if (avg > 1 / 42 && dprScale > 0.6 && !params.has('snap')) {
+        dprScale = Math.max(0.6, dprScale - 0.1);
         resize();
       }
     }
-    requestAnimationFrame(frame);
   }
 
   document.addEventListener('visibilitychange', () => {
@@ -287,9 +319,14 @@ async function start3D() {
     }
   });
 
+  await rover.precompile(renderer, scene, camera);
+
   document.getElementById('loader').classList.add('done');
   document.body.classList.add('gl-ready');
-  window.__beachboy = { ready: true };
+  window.__beachboy = {
+    ready: true,
+    stats: () => ({ tris: renderer.info.render.triangles, calls: renderer.info.render.calls, dpr: +dpr.toFixed(2) }),
+  };
   requestAnimationFrame(frame);
 }
 

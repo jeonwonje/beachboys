@@ -39,11 +39,11 @@ const PAINT = {
   k_wheel__mat_1: { color: '#34383d', metal: 0.75, rough: 0.42 },
   c_frame__mat_1: { color: '#b4b9be', metal: 0.85, rough: 0.38 },
   c_frame__mat_2: { color: '#2a50c7', metal: 0.05, rough: 0.56 },
-  c_frame__mat_5: { color: '#a9aeb3', metal: 0.9, rough: 0.38 },
+  c_frame__mat_5: { color: '#a9aeb3', metal: 0.9, rough: 0.38, noShadow: true },
   c_guard__mat_1: { color: '#dfeef2', metal: 0, rough: 0.12, opacity: 0.2 },
   c_guard__mat_2: { color: '#dfeef2', metal: 0, rough: 0.12, opacity: 0.2 },
   c_guard__mat_5: { color: '#dfeef2', metal: 0, rough: 0.12, opacity: 0.22 },
-  c_belt__mat_4: { color: '#cfd3d6', metal: 0.8, rough: 0.4 },
+  c_belt__mat_4: { color: '#8f9499', metal: 0.7, rough: 0.58 },
   c_spoke__holder: { color: '#f4c404', metal: 0, rough: 0.55 },
   c_spoke__tine: { color: '#101113', metal: 0, rough: 0.62 },
   c_skid__mat_1: { color: '#aeb3b8', metal: 0.8, rough: 0.44 },
@@ -108,7 +108,7 @@ function makeMaterial(spec) {
     emissiveIntensity: 0,
   });
   m.userData.baseOpacity = m.opacity;
-  m.userData.isScreen = !!spec.grid;
+  m.userData.noShadow = !!spec.grid || !!spec.noShadow;
   // CAD models the screens as plain sheets. Cut the wire pattern here instead
   // of carrying thousands of wires in the mesh.
   if (spec.grid) {
@@ -188,7 +188,7 @@ export async function loadRover(url, onProgress) {
 
     const mesh = new THREE.Mesh(o.geometry, mat);
     const opaque = !spec.opacity;
-    mesh.castShadow = opaque && !spec.grid;
+    mesh.castShadow = opaque && !spec.grid && !spec.noShadow;
     mesh.receiveShadow = opaque;
     if (!parts[key]) {
       const group = new THREE.Group();
@@ -274,6 +274,22 @@ export async function loadRover(url, onProgress) {
     root,
     parts,
     lift,
+    // Compile the see-through variant of every material up front, so the first
+    // chapter that ghosts part of the machine doesn't stutter.
+    async precompile(renderer, scene, camera) {
+      const mats = Object.values(parts).flatMap((p) => p.meshes.map((m) => m.material));
+      const was = mats.map((m) => m.transparent);
+      mats.forEach((m) => {
+        m.transparent = true;
+        m.needsUpdate = true;
+      });
+      await renderer.compileAsync(scene, camera);
+      mats.forEach((m, i) => {
+        m.transparent = was[i];
+        m.needsUpdate = true;
+      });
+      await renderer.compileAsync(scene, camera);
+    },
     // Where a world point on the model has moved to once exploded.
     partOffset(key, explode, focus) {
       const part = parts[key];
@@ -288,7 +304,7 @@ export async function loadRover(url, onProgress) {
       state.travel = (state.travel + dt * s.belt * 0.34) % loopLen;
       state.drumPhase += (dt * s.rock * 2 * Math.PI) / DRUM_PERIOD;
       state.paddleAngle += dt * s.belt * 1.8;
-      placeRows(state.travel);
+      if (s.belt > 0) placeRows(state.travel);
 
       const maxFocus = Math.max(s.focus.conveyor, s.focus.drum, s.focus.bin);
       for (const p of Object.values(parts)) {
@@ -318,12 +334,15 @@ export async function loadRover(url, onProgress) {
 
         const target = p.sub === 'carrier' ? 1 - 0.8 * maxFocus : 1 - 0.84 * Math.max(0, maxFocus - f);
         p.op += (target - p.op) * Math.min(1, dt * 7);
+        if (Math.abs(target - p.op) < 0.002) p.op = target;
         const hl = s.highlight;
         const wantGlow = hl === p.key || hl === p.sub ? 0.5 : 0;
         p.glow += (wantGlow - p.glow) * Math.min(1, dt * 9);
+        if (Math.abs(wantGlow - p.glow) < 0.002) p.glow = wantGlow;
         for (const m of p.meshes) {
           const mat = m.material;
           const opacity = mat.userData.baseOpacity * p.op;
+          if (mat.opacity === opacity && mat.emissiveIntensity === p.glow) continue;
           const see = opacity < 0.985;
           if (mat.transparent !== see) {
             mat.transparent = see;
@@ -332,7 +351,7 @@ export async function loadRover(url, onProgress) {
           mat.opacity = opacity;
           mat.depthWrite = opacity > 0.6;
           mat.emissiveIntensity = p.glow;
-          m.castShadow = opacity > 0.6 && mat.userData.baseOpacity === 1 && !mat.userData.isScreen;
+          m.castShadow = opacity > 0.6 && mat.userData.baseOpacity === 1 && !mat.userData.noShadow;
         }
       }
     },

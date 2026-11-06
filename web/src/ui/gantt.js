@@ -47,11 +47,12 @@ export async function initGantt(url) {
   const start = ts(data.range[0]);
   const end = ts(data.range[1]);
   const span = (end - start) / DAY;
-  const pxPerDay = 3.1;
+  const pxPerDay = 4.2;
   const x = (t) => ((t - start) / DAY) * pxPerDay;
   const width = span * pxPerDay;
 
-  const filter = { cat: new Set(), person: null, plan: true };
+  const KEY = ['test', 'field', 'milestone'];
+  const filter = { cat: new Set(KEY), person: null, plan: true };
 
   const months = [];
   for (let d = new Date(start); d.getTime() < end; d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))) {
@@ -60,7 +61,8 @@ export async function initGantt(url) {
 
   controls.innerHTML = `
     <div class="chips" data-group="cat"><span class="chips-label">Show</span>
-      <button class="chip on" data-cat="">All</button>
+      <button class="chip on" data-cat="key">Tests and milestones</button>
+      <button class="chip" data-cat="">Everything</button>
       ${['test', 'field', 'build', 'electronics', 'platform', 'design', 'research', 'review', 'milestone']
         .filter((c) => events.some((e) => e.category === c))
         .map((c) => `<button class="chip" data-cat="${c}">${CATS[c]}</button>`)
@@ -80,7 +82,7 @@ export async function initGantt(url) {
       const s = ts(e.start);
       const f = ts(e.end) + DAY;
       // Leave room for the label on one-day events.
-      const visualEnd = Math.max(f, s + 26 * DAY);
+      const visualEnd = Math.max(f, s) + 50 * DAY;
       let r = rows.findIndex((endT) => endT <= s);
       if (r < 0) {
         rows.push(visualEnd);
@@ -138,7 +140,8 @@ export async function initGantt(url) {
     if (!b) return;
     if ('cat' in b.dataset) {
       filter.cat.clear();
-      if (b.dataset.cat) filter.cat.add(b.dataset.cat);
+      if (b.dataset.cat === 'key') KEY.forEach((c) => filter.cat.add(c));
+      else if (b.dataset.cat) filter.cat.add(b.dataset.cat);
     } else {
       filter.person = b.dataset.person || null;
     }
@@ -163,6 +166,15 @@ export async function initGantt(url) {
   });
 
   render();
-  // Open near the busy part of the year on narrow screens.
-  mount.scrollLeft = 0;
+  // Open on the build and test months, which is what most people came to see.
+  mount.scrollLeft = x(ts('2026-07-20'));
+
+  const short = (d) => new Date(ts(d)).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const range = (a, b) => (!a ? '' : !b ? `From ${short(a)}` : a === b ? short(a) : `${short(a)} to ${short(b)}`);
+  document.getElementById('pva').innerHTML = `<thead><tr><th>Task</th><th>Planned</th><th>Actual</th></tr></thead><tbody>${(data.pva ?? [])
+    .map((p) => {
+      const actual = range(p.actualStart, p.actualEnd);
+      return `<tr><td>${esc(p.task)}</td><td>${range(p.plannedStart, p.plannedEnd)}</td><td class="${actual ? '' : 'none'}">${actual || 'No record'}</td></tr>`;
+    })
+    .join('')}</tbody>`;
 }

@@ -97,8 +97,16 @@ export function createDebris(scene, { startX = 0.9, endX = 44, count = 300 } = {
     return { im, kind, list: items[i] };
   });
 
+  let lastTide = -1;
+  let lastRover = -1e9;
+  let settling = 0;
   return {
     update(dt, { tide, roverX }) {
+      if (tide !== lastTide || roverX !== lastRover) settling = 0.6;
+      else if (settling <= 0) return;
+      settling -= dt;
+      lastTide = tide;
+      lastRover = roverX;
       for (const g of groups) {
         g.list.forEach((it, j) => {
           // Taken by the machine once the intake reaches it.
@@ -203,6 +211,7 @@ export function createFlow(lift) {
   const dummy = new THREE.Object3D();
   const p = new THREE.Vector3();
   let t = 0;
+  let lastShown = -1;
   return {
     update(dt, { flow, fill }) {
       t += dt * flow;
@@ -237,6 +246,8 @@ export function createFlow(lift) {
       }
       // Pile in the bin.
       const shown = Math.floor(fill * PILE);
+      if (shown === lastShown) return;
+      lastShown = shown;
       for (let i = 0; i < PILE; i++) {
         const a = pileAt[i];
         dummy.position.set(a.x, a.y, a.z);
