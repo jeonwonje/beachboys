@@ -4,7 +4,7 @@
 
 A student-built module that collects debris from wet sand, where tractor sieves clog and workers still clear the beach by hand. Built on a Botsync Copernicus rover by Beach Boys Labs for CDE3301 / ASI-301 at the National University of Singapore.
 
-**[Scroll through the machine in 3D](https://jeonwonje.github.io/beachboys/)**
+**[Scroll through the machine in 3D](https://jeonwonje.com/beachboys/)**
 
 ![The BeachBoy 3D model on a beach at dawn](.github/hero.jpg)
 
