@@ -12,7 +12,7 @@ export const CHAPTERS = {
   conveyor: { rover: 0, t: [0.72, 0.5, 0], az: -68, el: 14, d: 3.2, side: 0.2, time: 1.5, tide: 1, explode: 1, focus: 'conveyor', flow: 0, belt: 1 },
   drum: { rover: 0, t: [-0.08, 0.95, 0], az: -126, el: 30, d: 2.3, side: -0.2, time: 1.6, tide: 1, explode: 1, focus: 'drum', flow: 0, rock: 1 },
   tray: { rover: 0, t: [-0.75, 0.52, 0], az: -150, el: 24, d: 2.6, side: 0.2, time: 1.7, tide: 1, explode: 1, focus: 'bin', flow: 0 },
-  electronics: { rover: 0, t: [0.1, 0.42, 0], az: -24, el: 34, d: 2.5, side: -0.22, time: 1.8, tide: 1, flow: 0 },
+  electronics: { rover: 0, t: [0.1, 0.3, 0.02], az: -52, el: 42, d: 2.1, side: -0.2, time: 1.8, tide: 1, focus: 'electronics', flow: 0 },
   pass: { rover: 14, t: [0.25, 0.42, 0], az: -32, el: 12, d: 4.0, side: 0.2, time: 2, tide: 1, flow: 1, belt: 1, rock: 1 },
   iterate: { rover: 16, t: [0.1, 0.4, 0], az: -60, el: 18, d: 6, side: 0, time: 2.2, tide: 1, dim: 1 },
   bench: { rover: 16, t: [0.1, 0.4, 0], az: -80, el: 20, d: 5, side: 0, time: 2.3, tide: 1, dim: 1 },
@@ -59,12 +59,17 @@ export function blend(a, b, f, roverBase) {
       conveyor: lerp(focusOf(a, 'conveyor'), focusOf(b, 'conveyor'), m),
       drum: lerp(focusOf(a, 'drum'), focusOf(b, 'drum'), m),
       bin: lerp(focusOf(a, 'bin'), focusOf(b, 'bin'), m),
+      electronics: lerp(focusOf(a, 'electronics'), focusOf(b, 'electronics'), m),
     },
   };
 }
 
 // Labels floating on the model. Positions are in model space, before explode.
 export const PINS = [
+  { id: 'e_pi', ch: ['electronics'], label: 'Raspberry Pi 5', part: 'e_boards', anchor: 'e_boards', p: [0.048, 0.06, 0.144] },
+  { id: 'e_mega', ch: ['electronics'], label: 'Arduino Mega 2560', part: 'e_boards', anchor: 'e_boards', p: [0.1, 0.06, 0.05] },
+  { id: 'e_driver', ch: ['electronics'], label: 'Motor driver', part: 'e_boards', anchor: 'e_boards', p: [0.2, 0.06, 0.18] },
+  { id: 'e_pack', ch: ['electronics'], label: 'Sodium-ion pack', part: 'e_battery', anchor: 'e_battery', p: [0.101, 0.09, -0.153] },
   { id: 's_conveyor', ch: ['machine'], label: 'Conveyor', part: 'conveyor', anchor: 'c_frame', p: [0.62, 0.36, -0.2] },
   { id: 's_drum', ch: ['machine'], label: 'Half-drum', part: 'drum', anchor: 'd_frame', p: [-0.12, 0.5, -0.2] },
   { id: 's_bin', ch: ['machine'], label: 'Tray and bin', part: 'bin', anchor: 'b_bin', p: [-0.47, 0.2, -0.15] },

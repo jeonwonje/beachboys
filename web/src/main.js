@@ -241,7 +241,7 @@ async function start3D() {
     }
 
     // Shadows only change when the machine or the sun moves.
-    const key = [s.rover, s.explode, s.time, s.slope, s.focus.conveyor, s.focus.drum, s.focus.bin].map((v) => v.toFixed(3)).join();
+    const key = [s.rover, s.explode, s.time, s.slope, s.focus.conveyor, s.focus.drum, s.focus.bin, s.focus.electronics].map((v) => v.toFixed(3)).join();
     const moving = s.belt > 0.01 || s.rock > 0.01 || Math.abs(dRover) > 0.0005;
     if (key !== shadowKey || (moving && frameNo % 2 === 0)) {
       renderer.shadowMap.needsUpdate = true;
