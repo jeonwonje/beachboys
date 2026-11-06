@@ -18,7 +18,7 @@ A payload on a Botsync Copernicus electric base, built to collect debris from dr
 
 In sandpit bench tests, it ran below the noise threshold and stopped all motion on emergency stop. On Palawan Beach, collection fell well short of the 0.80 target: 37.5% at best on dry sand and 6.3% at best on wet sand. The wet band's cross-slope tipped debris off the conveyor before it reached the drum, and soft sand let the skid sink, which jammed the conveyor and stalled the robot.
 
-Workers ran the machine with little help. Both operators and the site manager said it would save them from bending to re-collect debris dropped by the bobcat.
+Workers ran the machine with little help, and all three people asked found it less physically demanding than the current workflow.
 
 Everything on the site comes from the design report.
 

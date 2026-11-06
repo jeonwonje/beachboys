@@ -58,7 +58,7 @@ const FIELD = {
 };
 
 const REQS = [
-  ['D1', 'Collect debris in the wet band', 'Collection rate 0.80 or better per class', 'fail', 'Fail on field', 'Fail on field (37.5% at best), passed on bench. Updated after the field test to cover wet sand and cross-slope.'],
+  ['D1', 'Collect debris in the wet band', 'Collection rate 0.80 or better per class', 'fail', 'Fail on field', 'Fail on field (37.5% at best on dry sand, 6.3% at best on wet sand). On the bench, wet flat intake (50%) and wet long transfer (63%) stayed below 80%. Updated after the field test to cover wet sand and cross-slope.'],
   ['D2', 'Separate wet sand from debris', 'Majority of sand settles on the tray; debris loss 0.05 or less', 'fail', 'Fail on settling', 'The majority is still split between the V plate and tray. Debris loss passes at 0%.'],
   ['D3', 'Operate below noise threshold', 'Under 60 dB(A) at 1 m', 'pass', 'Pass', 'Stayed below 60 dB(A) at 1 m while traversing, with the conveyor and U plate running.'],
   ['D4', 'Mass within carrier capacity', 'Moves with the bin at a 10 kg payload', 'pass', 'Pass', 'Route completed on road and motion on sand with the 10 kg payload.'],

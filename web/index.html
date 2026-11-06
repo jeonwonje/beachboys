@@ -35,7 +35,7 @@
   <div class="hero-inner">
     <p class="eyebrow on-dark">Modular End-Effector for Beach Debris Cleanup · CDE3301 Design Report · AY 2026/27</p>
     <h1>Beach<wbr>Boy</h1>
-    <p class="lede">A quiet, modular attachment<br>for dry and wet sand.</p>
+    <p class="lede">A quiet, modular attachment built to<br>collect debris from dry and wet sand.</p>
     <p class="hint"><span>Scroll</span> through the machine and its test results</p>
   </div>
 </section>
@@ -48,7 +48,7 @@
       <h2>It must be cleared daily.</h2>
       <p>Most of the plastic litter on Singapore's beaches arrives from offshore. Tanjong, Siloso and Palawan beaches on Sentosa are cleaned by about 20 workers, split evenly between manual collection and machinery.</p>
       <div class="stats">
-        <div><b>97%</b><span>of plastic litter on Singapore's beaches arrives from offshore <cite>The Straits Times, NEA study, Jan 2025</cite></span></div>
+        <div><b>~97%</b><span>of plastic litter on Singapore's beaches arrives from offshore <cite>The Straits Times, NEA study, Jan 2025</cite></span></div>
         <div><b>~20</b><span>workers cover the three beaches <cite>Site visit and interview, 2 Apr 2026</cite></span></div>
       </div>
       <span class="src">Design report, Section 1.1 and Appendix C.1</span>
@@ -64,7 +64,7 @@
       <p>Tractor-towed sieves clear the dry sand. On the wet intertidal band, wet particles stick to the mesh wires and block the holes, so that strip is cleared by hand.</p>
       <p>Workers sweep debris into piles and lift each pile into a tractor bucket, often in the heat. Above 32 °C WBGT, mandatory rest breaks take them off the sand.</p>
       <ul class="checks">
-        <li><b>Hardest task.</b> Moving piles onto the bucket or utility vehicle is the most tiring part of the work.</li>
+        <li><b>Most tiring task.</b> Moving piles onto the bucket or utility vehicle is the most tiring part of the work.</li>
         <li><b>Noise.</b> Tractors are too noisy to run when crowds are present.</li>
         <li><b>More tractors?</b> They would face the same limits.</li>
       </ul>
@@ -150,11 +150,11 @@
       <dl class="spec" data-spec>
         <div data-part="d_drum"><dt>Screen</dt><dd>5 mm mesh. Top half removed, so it takes the conveyor drop</dd></div>
         <div data-part="d_wheels"><dt>Wheels</dt><dd>Inline skate wheels sized to the rim channel, so the rim holds its line</dd></div>
-        <div data-part="d_drive"><dt>Drive</dt><dd>Friction drive at 0.24 of critical speed, with 1.8 times the worst-case torque</dd></div>
+        <div data-part="d_drive"><dt>Drive</dt><dd>Friction drive at 0.24 of critical speed. The motor is calculated to supply 1.8 times the worst-case torque at an assumed 50% efficiency; grip at the contact was not measured</dd></div>
         <div data-part="d_frame"><dt>Springs</dt><dd>Two at the midpoint of the drum add downforce</dd></div>
       </dl>
       <figure class="inline-photo"><img loading="lazy" src="media/fig12-half-drum.webp" alt="Labelled photo of the half-drum showing the aluminium mesh, inline skate wheels, motor and bicycle rims"><figcaption>Figure 12: Trommel half-drum subsystem.</figcaption></figure>
-      <span class="src">Design report, Sections 2.2.3 and 3.1.2, Appendix D</span>
+      <span class="src">Design report, Sections 2.1, 2.2.3 and 3.1.2, Appendix D</span>
     </div>
   </div>
 </section>
@@ -162,7 +162,7 @@
 <section id="tray" class="ch tall" data-ch="tray" data-label="Tray and bin">
   <div class="stick left">
     <div class="panel">
-      <p class="eyebrow">Stage 3 · Debris storage</p>
+      <p class="eyebrow">Debris storage</p>
       <h2>Tray and bin</h2>
       <p>Separated sand collects on a tray, and debris in a meshed bin at the back of the robot. They are a connected unit that slides out through the back.</p>
       <dl class="spec" data-spec>
@@ -182,12 +182,12 @@
     <div class="panel wide">
       <p class="eyebrow">Electronics architecture</p>
       <h2>Two isolated power domains.</h2>
-      <p>The carrier's LiFePO4 pack powers the wheel drives, and the module's 24 V, 300 Wh sodium-ion pack powers everything else. They connect only through an isolated RS485 link, so a payload fault cannot reach the drives.</p>
+      <p>The carrier's LiFePO4 pack powers the wheel drives, and the module's 24 V sodium-ion pack powers everything else. They connect only through an isolated RS485 link, so a payload fault cannot reach the drives.</p>
       <figure class="wiring"><a href="media/fig15-wiring.webp"><img loading="lazy" src="media/fig15-wiring.webp" alt="Figure 15: system wiring of the carrier and payload power domains, controllers, motor driver and limit switches"></a></figure>
       <dl class="spec plain">
         <div><dt>Controllers</dt><dd>A Raspberry Pi 5 talks to the servo drives over Modbus RTU and supervises an Arduino Mega 2560, which drives the motors</dd></div>
         <div><dt>Rocking</dt><dd>Between two normally closed limit switches, coasting 150 ms at each end</dd></div>
-        <div><dt>Fail-safe</dt><dd>A broken wire reads as a press, so the Mega stops the drum</dd></div>
+        <div><dt>Broken wire</dt><dd>A broken wire reads as a press, so the Mega stops the drum</dd></div>
         <div><dt>Case</dt><dd>Removable acrylic, keeps out sand but is not sealed</dd></div>
       </dl>
       <span class="src">Design report, Section 3.2, Figure 15</span>
@@ -225,10 +225,10 @@
         <tr class="grp"><td colspan="4">Conveyor</td></tr>
         <tr><td>B1.0</td><td>Free-pivoting 7 cm skids; motor drives the belt directly, 1:1; 35 cm mesh belt with printed spokes; conveyor angle set at 40°</td><td>Long items picked up</td><td>Skids pivot and block forward motion; spokes cannot reach digging depth; motor stalls; debris not handed into the drum</td></tr>
         <tr><td>B2.0</td><td>Bucket-scoop spokes tried, rejected; fixed brush at the handoff tried, rejected; skids locked</td><td>Skids no longer block</td><td>Scoops add digging load and stall the motor; brush leaves a gap</td></tr>
-        <tr><td>B3.0</td><td>Skids cut from 7 to 5 cm; belt drive raised to 3:1; conveyor lengthened for a higher drop into the drum</td><td>No stalls through bench test 1; transfer clears the gate; long items pass intake</td><td>Small rigid items slip between spokes; large rigid items ride the spoke tips; flat items pushed ahead</td></tr>
+        <tr><td>B3.0</td><td>Skids cut from 7 to 5 cm; belt drive raised to 3:1; conveyor lengthened for a higher drop into the drum</td><td>No stalls through bench test 1; transfer reached 87.5% dry and 78.6% wet; long items pass intake</td><td>Small rigid items slip between spokes; large rigid items ride the spoke tips; flat items pushed ahead</td></tr>
         <tr class="grp"><td colspan="4">Half-drum</td></tr>
         <tr><td>B0.0</td><td>3D-printed 28 cm rim with a rubber strip; off-the-shelf castors; friction drive through the support wheels</td><td>Nothing yet</td><td>Drum drifts out of line; drum too small for the 35 cm belt</td></tr>
-        <tr><td>B1.0</td><td>34 cm bicycle rim; custom printed castors; frame and mounts rebuilt</td><td>Rim now wider than the belt</td><td>Castors loose in the rim channel</td></tr>
+        <tr><td>B1.0</td><td>Bicycle rim; custom printed castors; frame and mounts rebuilt</td><td>Rim now wider than the belt</td><td>Castors loose in the rim channel</td></tr>
         <tr><td>B2.0</td><td>Inline skate wheels sized to the rim channel; fixed brush tried, rejected</td><td>Rim holds its line</td><td>Brush does not guide debris into the drum</td></tr>
         <tr><td>B3.0</td><td>Top half removed; capstan drive with limit switches; GT2 belt drive tried, rejected</td><td>Debris lands on the mesh; no debris lost through the mesh</td><td>Sand builds up over the drum motor; capstan string loses tension</td></tr>
         <tr class="grp"><td colspan="4">Tray and bin</td></tr>
@@ -254,12 +254,12 @@
       <span><i class="b"></i>Below 80%</span>
       <span><i class="c"></i>No valid run</span>
     </div>
-    <span class="src">Design report, Figures 16 and 17. <a href="https://youtu.be/JEZX-O-lJ6w">Watch B3.0</a> · <a href="https://youtu.be/uszukNu2L7s">Watch B4.0</a></span>
+    <span class="src">Design report, Sections 4.1.1 and 4.1.3, Figures 16 and 17. <a href="https://youtu.be/JEZX-O-lJ6w">Watch B3.0</a> · <a href="https://youtu.be/uszukNu2L7s">Watch B4.0</a></span>
 
     <h3 class="sub">What the first session changed</h3>
     <div class="fig-grid">
       <figure class="fig"><div class="fig-pair"><img loading="lazy" src="media/t6-spokes-gap.webp" alt="Gaps between the spokes"><img loading="lazy" src="media/t6-mesh-strip.webp" alt="Mesh strip across the spokes"></div><figcaption><b>Small rigid items pass between the spokes.</b> Mesh strip across the spokes. Small-item intake rose from 60.0% to 86.7% dry.</figcaption></figure>
-      <figure class="fig"><div class="fig-pair"><img loading="lazy" src="media/t6-pushed-bottle.webp" alt="A bottle pushed ahead of the intake"><img loading="lazy" src="media/fig10-paddle.webp" alt="Front paddle sweeper"></div><figcaption><b>Large rigid and flat items pushed ahead of the intake.</b> Front paddle sweeper at the intake front.</figcaption></figure>
+      <figure class="fig"><div class="fig-pair"><img loading="lazy" src="media/t6-pushed-bottle.webp" alt="A bottle pushed ahead of the intake"><img loading="lazy" src="media/t6-paddle.webp" alt="Front paddle sweeper at the intake"></div><figcaption><b>Large rigid and flat items pushed ahead of the intake.</b> Front paddle sweeper at the intake front.</figcaption></figure>
       <figure class="fig"><div class="fig-pair"><img loading="lazy" src="media/t6-sand-motor.webp" alt="Sand over the drum motor"><img loading="lazy" src="media/t6-polycarbonate.webp" alt="Polycarbonate sheet over the drum front"></div><figcaption><b>Sand builds up over the drum motor.</b> Polycarbonate sheet over the drum front face.</figcaption></figure>
     </div>
     <p><b>Capstan string will not hold tension.</b> Belt drive trialled and rejected, friction drive on springs fitted. After the second session, paddle flaps were replaced with rubber sheets because the sweeper jammed debris at the intake, and the polycarbonate sheet and V plate were reduced because sand clumped on them.</p>
@@ -306,10 +306,10 @@
       <div class="barset"><div class="barplot"><div class="bar" style="--c:var(--blue);height:37.5%"><b>37.5%</b></div><div class="bar" style="--c:var(--orange);height:31.3%"><b>31.3%</b></div></div><h4>Dry sand</h4></div>
       <div class="barset"><div class="barplot"><div class="bar" style="--c:var(--blue);height:0"><b>0%</b></div><div class="bar" style="--c:var(--orange);height:6.3%"><b>6.3%</b></div></div><h4>Wet sand</h4></div>
     </div>
-    <span class="src">Design report, Figure 18. <a href="https://www.youtube.com/watch?v=qoOOG6r1pEE">Watch the field test</a></span>
+    <span class="src">Design report, Glossary, Section 4.2, Figure 18. <a href="https://www.youtube.com/watch?v=qoOOG6r1pEE">Watch the field test</a></span>
 
     <h3 class="sub">Where the debris was lost</h3>
-    <p>Intake is below the 80% threshold in all four conditions, but moisture makes its difference at transfer. Dry holds at 100%, while wet reaches at most 16.7%, against 89.5% in the wet bench test at B4.0.</p>
+    <p>Intake is below the 80% threshold in all four conditions, but moisture makes its difference at transfer. Dry holds at 100%, while wet reaches at most 16.7% overall, against 89.5% in the wet bench test at B4.0.</p>
     <div class="tabs" id="field-tabs"></div>
     <div class="table-wrap" id="field-table"></div>
     <div class="rate-key">
@@ -317,7 +317,7 @@
       <span><i class="b"></i>Below 80%</span>
       <span><i class="c"></i>No value</span>
     </div>
-    <span class="src">Design report, Figures 19 and 21</span>
+    <span class="src">Design report, Section 4.2, Figures 19 and 21</span>
 
     <h3 class="sub">What went wrong, and what held</h3>
     <div class="fig-grid">
@@ -328,12 +328,12 @@
     </div>
     <span class="src">Design report, Section 4.2, Table 12, Figures 22 to 25</span>
 
-    <h3 class="sub">What the workers said</h3>
+    <h3 class="sub">User tests and clear-out</h3>
     <div class="stats">
       <div><b>5 of 6</b><span>tasks completed unaided by both operators</span></div>
       <div><b>5.23</b><span>minutes to clear out, with two people and hand tools only</span></div>
     </div>
-    <p>Two workers attempted six operating tasks after a demonstration, then were interviewed with the on-site manager. One needed help to clear a jam and resume, the other to drive it to the working zone. All three found the machine less physically demanding than the current workflow, and independently named the same benefit: it removes the step in which workers bend to re-collect debris dropped by the bobcat.</p>
+    <p>Two workers attempted six operating tasks after a demonstration, then were interviewed with the on-site manager. One needed help to clear a jam and resume, the other to drive it to the working zone. All three found the machine less physically demanding than the current workflow. One operator and the on-site manager pointed to less bending to re-collect debris dropped by the bobcat. The other operator pointed to driving the machine instead of spending hours in the sun picking up debris.</p>
     <span class="src">Design report, Section 4.2, Tables 11 and I.3</span>
   </div>
 </section>
@@ -345,7 +345,7 @@
     <h2>Workflow answered. Collection not yet.</h2>
     <p class="sheet-lede">BeachBoy answers the workflow problem but does not yet collect enough debris to replace hand clearing of the wet band.</p>
     <div class="score" id="score-list"></div>
-    <span class="src">Design report, Tables 2 and 12</span>
+    <span class="src">Design report, Tables 2, 7, 10, 11, 12 and I.3, Sections 3.2 and 4.2</span>
 
     <h3 class="sub">Future work</h3>
     <ol class="num-list">

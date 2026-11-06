@@ -75,7 +75,7 @@ export const PINS = [
   { id: 'c_paddle', ch: ['conveyor'], label: 'Paddle', part: 'c_paddle', anchor: 'c_paddle', p: [0.95, -0.13, -0.16] },
   { id: 'c_mount', ch: ['conveyor'], label: 'Mount', part: 'c_mount', anchor: 'c_mount', p: [0.2, 0.25, -0.2] },
   { id: 'd_drum', ch: ['drum'], label: 'Screen', part: 'd_drum', anchor: 'd_drum', p: [-0.12, 0.26, 0.02] },
-  { id: 'd_wheels', ch: ['drum'], label: 'Carriers', part: 'd_wheels', anchor: 'd_wheels', p: [0.115, 0.35, -0.17] },
+  { id: 'd_wheels', ch: ['drum'], label: 'Wheels', part: 'd_wheels', anchor: 'd_wheels', p: [0.115, 0.35, -0.17] },
   { id: 'd_drive', ch: ['drum'], label: 'Drive', part: 'd_drive', anchor: 'd_drive', p: [0.06, 0.25, 0] },
   { id: 'd_frame', ch: ['drum'], label: 'Frame', part: 'd_frame', anchor: 'd_frame', p: [0.116, 0.44, -0.225] },
   { id: 'b_vplate', ch: ['tray'], label: 'V plate', part: 'b_vplate', anchor: 'b_vplate', p: [0.02, 0.29, 0.12] },
