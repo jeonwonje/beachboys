@@ -14,14 +14,15 @@ export const CHAPTERS = {
   tray: { rover: 0, t: [-0.75, 0.52, 0], az: -150, el: 24, d: 2.6, side: 0.2, time: 1.7, tide: 1, explode: 1, focus: 'bin', flow: 0 },
   electronics: { rover: 0, t: [0.1, 0.42, 0], az: -24, el: 34, d: 2.5, side: -0.22, time: 1.8, tide: 1, flow: 0 },
   pass: { rover: 14, t: [0.25, 0.42, 0], az: -32, el: 12, d: 4.0, side: 0.2, time: 2, tide: 1, flow: 1, belt: 1, rock: 1 },
-  bench: { rover: 16, t: [0.1, 0.4, 0], az: -80, el: 20, d: 5, side: 0, time: 2.2, tide: 1, dim: 1 },
-  iterate: { rover: 16, t: [0.1, 0.4, 0], az: -60, el: 18, d: 6, side: 0, time: 2.3, tide: 1, dim: 1 },
-  score: { rover: 16, t: [0.1, 0.4, 0], az: -40, el: 16, d: 7, side: 0, time: 2.4, tide: 1, dim: 1 },
-  timeline: { rover: 16, t: [0.1, 0.4, 0], az: -20, el: 14, d: 8, side: 0, time: 2.6, tide: 1, dim: 1 },
-  team: { rover: 16, t: [0.1, 0.55, 0], az: -148, el: 7, d: 7, side: 0, time: 3, tide: 1, flow: 0 },
+  iterate: { rover: 16, t: [0.1, 0.4, 0], az: -60, el: 18, d: 6, side: 0, time: 2.2, tide: 1, dim: 1 },
+  bench: { rover: 16, t: [0.1, 0.4, 0], az: -80, el: 20, d: 5, side: 0, time: 2.3, tide: 1, dim: 1 },
+  beach: { rover: 16, t: [0.15, 0.3, 0], az: -74, el: 8, d: 4.2, side: 0.2, time: 2.45, tide: 1, slope: 0.09 },
+  field: { rover: 16, t: [0.1, 0.4, 0], az: -40, el: 16, d: 7, side: 0, time: 2.55, tide: 1, slope: 0.09, dim: 1 },
+  score: { rover: 16, t: [0.1, 0.4, 0], az: -20, el: 14, d: 8, side: 0, time: 2.7, tide: 1, dim: 1 },
+  team: { rover: 16, t: [0.1, 0.55, 0], az: -148, el: 7, d: 7, side: 0.22, time: 3, tide: 1, flow: 0 },
 };
 
-const DEFAULTS = { explode: 0, focus: null, flow: 0, belt: 0, rock: 0, band: 0, abs: false, dim: 0 };
+const DEFAULTS = { slope: 0, explode: 0, focus: null, flow: 0, belt: 0, rock: 0, band: 0, abs: false, dim: 0 };
 
 export function resolve(name) {
   return { ...DEFAULTS, ...CHAPTERS[name] };
@@ -53,6 +54,7 @@ export function blend(a, b, f, roverBase) {
     rock: lerp(a.rock, b.rock, m),
     band: lerp(a.band, b.band, m),
     dim: lerp(a.dim, b.dim, m),
+    slope: lerp(a.slope, b.slope, m),
     focus: {
       conveyor: lerp(focusOf(a, 'conveyor'), focusOf(b, 'conveyor'), m),
       drum: lerp(focusOf(a, 'drum'), focusOf(b, 'drum'), m),
@@ -75,7 +77,7 @@ export const PINS = [
   { id: 'd_drum', ch: ['drum'], label: 'Screen', part: 'd_drum', anchor: 'd_drum', p: [-0.12, 0.26, 0.02] },
   { id: 'd_wheels', ch: ['drum'], label: 'Carriers', part: 'd_wheels', anchor: 'd_wheels', p: [0.115, 0.35, -0.17] },
   { id: 'd_drive', ch: ['drum'], label: 'Drive', part: 'd_drive', anchor: 'd_drive', p: [0.06, 0.25, 0] },
-  { id: 'd_frame', ch: ['drum'], label: 'Stroke', part: 'd_frame', anchor: 'd_frame', p: [0.116, 0.44, -0.225] },
+  { id: 'd_frame', ch: ['drum'], label: 'Frame', part: 'd_frame', anchor: 'd_frame', p: [0.116, 0.44, -0.225] },
   { id: 'b_vplate', ch: ['tray'], label: 'V plate', part: 'b_vplate', anchor: 'b_vplate', p: [0.02, 0.29, 0.12] },
   { id: 'b_tray', ch: ['tray'], label: 'Tray', part: 'b_tray', anchor: 'b_tray', p: [-0.14, 0.205, 0.1] },
   { id: 'b_bin', ch: ['tray'], label: 'Bin', part: 'b_bin', anchor: 'b_bin', p: [-0.46, 0.06, 0.15] },

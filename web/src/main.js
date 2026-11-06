@@ -7,8 +7,7 @@ import { createWorld, PATH_Z } from './scene/world.js';
 import { GROUND_Y, loadRover } from './scene/rover.js';
 import { createDebris, createFlow } from './scene/debris.js';
 import { blend, PINS, resolve } from './story.js';
-import { initBench, initScore } from './ui/bench.js';
-import { initGantt } from './ui/gantt.js';
+import { initResults } from './ui/results.js';
 
 const BASE = import.meta.env.BASE_URL;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -18,11 +17,8 @@ const sections = [...document.querySelectorAll('section[data-ch]:not([hidden])')
 const settings = sections.map((s) => resolve(s.dataset.ch));
 const roverBase = { z: PATH_Z };
 
-initBench();
-initScore();
-initGantt(`${BASE}data/gantt.json`);
+initResults();
 buildRail();
-wireVideos();
 
 let layout = [];
 function measure() {
@@ -50,20 +46,6 @@ function buildRail() {
   rail.innerHTML = sections
     .map((s) => `<a href="#${s.id}" data-rail="${s.id}"><span>${s.dataset.label}</span></a>`)
     .join('');
-}
-
-function wireVideos() {
-  const io = new IntersectionObserver(
-    (es) => {
-      for (const e of es) {
-        if (reduced) continue;
-        if (e.isIntersecting) e.target.play().catch(() => {});
-        else e.target.pause();
-      }
-    },
-    { threshold: 0.2 },
-  );
-  document.querySelectorAll('video[data-autoplay]').forEach((v) => io.observe(v));
 }
 
 // ── 3D ──────────────────────────────────────────────────────────────────────
@@ -201,6 +183,7 @@ async function start3D() {
     rollDist += dRover;
     lastRover = s.rover;
     rover.root.position.x = s.rover;
+    rover.root.rotation.x = s.slope; // the wet band's cross-slope, illustrative
 
     const motion = reduced ? 0 : 1;
     rover.update(dt, {
@@ -258,7 +241,7 @@ async function start3D() {
     }
 
     // Shadows only change when the machine or the sun moves.
-    const key = [s.rover, s.explode, s.time, s.focus.conveyor, s.focus.drum, s.focus.bin].map((v) => v.toFixed(3)).join();
+    const key = [s.rover, s.explode, s.time, s.slope, s.focus.conveyor, s.focus.drum, s.focus.bin].map((v) => v.toFixed(3)).join();
     const moving = s.belt > 0.01 || s.rock > 0.01 || Math.abs(dRover) > 0.0005;
     if (key !== shadowKey || (moving && frameNo % 2 === 0)) {
       renderer.shadowMap.needsUpdate = true;

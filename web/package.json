@@ -9,7 +9,6 @@
     "build": "vite build",
     "preview": "vite preview",
     "model": "node tools/prepare-model.mjs",
-    "gantt": "node tools/build-gantt.mjs",
     "shots": "node tools/shots.mjs"
   },
   "dependencies": {
