@@ -1,0 +1,29 @@
+{
+  "name": "beachboy-site",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Scroll-driven 3D story of the BeachBoy beach-debris collection module (CDE3301 / ASI-301).",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "model": "node tools/prepare-model.mjs",
+    "gantt": "node tools/build-gantt.mjs",
+    "shots": "node tools/shots.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/big-shoulders-display": "^5.1.0",
+    "@fontsource-variable/instrument-sans": "^5.1.0",
+    "@fontsource/jetbrains-mono": "^5.1.0",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "^4.1.0",
+    "@gltf-transform/extensions": "^4.1.0",
+    "@gltf-transform/functions": "^4.1.0",
+    "meshoptimizer": "^0.22.0",
+    "puppeteer-core": "^23.0.0",
+    "vite": "^6.0.0"
+  }
+}

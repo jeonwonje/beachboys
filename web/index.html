@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BeachBoy · Beach Boys Labs</title>
+<meta name="description" content="A student-built module that lifts debris off wet sand and shakes the sand back out. Scroll through the real machine, the failures, and the test results.">
+<meta property="og:title" content="BeachBoy · Beach Boys Labs">
+<meta property="og:description" content="Lift the debris, shake off the sand. A CDE3301 proof of concept for cleaning wet beaches.">
+<meta property="og:image" content="media/robot-34.webp">
+<meta name="theme-color" content="#16233f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2316233f'/%3E%3Cpath d='M0 21c5-5 11-5 16 0s11 5 16 0v11H0z' fill='%23f4c404'/%3E%3C/svg%3E">
+<script type="module" src="/src/main.js"></script>
+</head>
+<body>
+<a class="skip" href="#machine">Skip to the machine</a>
+
+<canvas id="stage" role="img" aria-label="3D model of the BeachBoy rover on a beach. Everything it shows is also described in the text."></canvas>
+<div id="grade" aria-hidden="true"></div>
+<div id="pins" aria-hidden="true"></div>
+
+<div id="loader" role="status"><span class="loader-word">Bringing the machine down to the beach</span><span class="loader-bar"><i></i></span></div>
+
+<header class="top">
+  <a class="mark" href="#top" aria-label="Beach Boys Labs, back to top"><svg viewBox="0 0 32 18" aria-hidden="true"><path d="M1 12c5-7 10-7 15 0s10 7 15 0" fill="none" stroke="currentColor" stroke-width="3.4"/></svg>Beach Boys Labs</a>
+  <a class="gh" href="https://github.com/jeonwonje/beachboys">Source on GitHub</a>
+</header>
+
+<nav class="rail" aria-label="Chapters"></nav>
+
+<main>
+
+<!-- ─────────── 0. Hero ─────────── -->
+<section id="top" class="ch hero" data-ch="hero" data-label="Start">
+  <div class="hero-inner">
+    <p class="eyebrow on-dark">Proof of concept · CDE3301 / ASI-301 · NUS</p>
+    <h1>Beach<wbr>Boy</h1>
+    <p class="lede">Lift the debris.<br>Shake off the sand.</p>
+    <p class="hint"><span>Scroll</span> to follow one pass down the beach</p>
+  </div>
+</section>
+
+<!-- ─────────── 1. The problem ─────────── -->
+<section id="problem" class="ch tall" data-ch="problem" data-label="The tide">
+  <div class="stick left">
+    <div class="panel">
+      <p class="eyebrow">The problem</p>
+      <h2>The tide never stops delivering.</h2>
+      <p>Most of what lands on Singapore's beaches arrives from the sea, so a clean beach only stays clean until the next tide. On Sentosa that means crews working the shoreline by hand, every day.</p>
+      <div class="stats">
+        <div><b>97%</b><span>of beach waste comes from offshore <cite>Straits Times, NEA data, Jan 2025</cite></span></div>
+        <div><b>~20</b><span>workers clean Sentosa's beaches <cite>Site interview, Apr 2026</cite></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="gap" class="ch tall" data-ch="gap" data-label="The wet band">
+  <div class="stick right">
+    <div class="panel">
+      <p class="eyebrow">The gap</p>
+      <h2>Sieves stop working where the sand gets wet.</h2>
+      <p>Wet grains stick to each other and to the wires, so a screen blinds instead of sifting. The highlighted strip is the wet band between the tide marks. It has no machine fallback, so workers bend, pile and lift it by hand, in the heat.</p>
+      <div class="photo-pair">
+        <figure><img loading="lazy" src="media/wcp-1.webp" alt="Mixed debris on the sand at West Coast Park"><figcaption>West Coast Park, 27 Mar</figcaption></figure>
+        <figure><img loading="lazy" src="media/wcp-3.webp" alt="Small debris partly buried in sand"><figcaption>Small items, half buried</figcaption></figure>
+      </div>
+      <p class="fine">We went looking for a narrower problem than "clean the beach". This strip is it: pick items up off wet ground, without a gravity sieve.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── 2. How we got here ─────────── -->
+<section id="path" class="ch" data-ch="path" data-label="How we got here">
+  <div class="sheet">
+    <p class="eyebrow">How we got here</p>
+    <h2>Twelve months of ideas failing cheaply.</h2>
+    <p class="sheet-lede">The first idea was a whole robot. It was rejected inside a month. Almost everything since has been a smaller thing that broke, and told us what to do next.</p>
+    <ol class="path">
+      <li><time>Nov 2025</time><div class="path-card nopic"><h3>A whole beach robot</h3><p>Our first proposal: a full machine with a 50 L bin. Our supervisor's challenge was blunt: don't build another platform. Build the part existing robots are missing.</p><span class="verdict no">Rejected</span></div></li>
+      <li><time>Mar 2026</time><div class="path-card"><img loading="lazy" src="media/cardboard.webp" alt="Cardboard conveyor prototype"><h3>Cardboard, by hand</h3><p>Scoops just pushed debris forward. A moving belt with spokes actually lifted it. That one afternoon chose the architecture.</p><span class="verdict yes">Conveyor wins</span></div></li>
+      <li><time>Mar 2026</time><div class="path-card"><img loading="lazy" src="media/sketch-screw.webp" alt="Hand sketch of a drum with an Archimedes screw"><h3>Screws and sieves</h3><p>An Archimedes screw clogged in wet sand. A vibrating mesh box did poorly. A hand-spun mesh drum dropped most of its wet sand in one turn.</p><span class="verdict yes">Drum wins</span></div></li>
+      <li><time>Apr 2026</time><div class="path-card"><img loading="lazy" src="media/interim-conveyor.webp" alt="Semester 1 conveyor prototype close-up"><h3>Interim prototypes</h3><p>Bench rigs for each function. Conveyor current rose from about 0.3 A to 0.9 A as the spokes dug into dry sand. Seaweed came up, then tangled.</p><span class="tag m">Measured</span></div></li>
+      <li><time>Jun 2026</time><div class="path-card"><img loading="lazy" src="media/turtlebot.webp" alt="Small test robot on sand"><h3>Finding a carrier</h3><p>The test robot got stuck in sand within about a minute. We borrowed a Copernicus rover with a dead control board and bypassed it, driving the motors directly over RS-485.</p><a class="more" href="https://github.com/eggsacc/copernicus-repair">The repair, on GitHub</a></div></li>
+      <li><time>5 Aug 2026</time><div class="path-card"><img loading="lazy" src="media/copernicus-wet-beach.webp" alt="Orange and grey Copernicus rover on wet sand with ships behind"><h3>First wet sand</h3><p>The bare carrier drove onto wet sand at West Coast. So the platform was settled, and everything else had to be built by October.</p><span class="verdict yes">It drives</span></div></li>
+      <li><time>Sep 2026</time><div class="path-card"><img loading="lazy" src="media/drum-bin-above.webp" alt="Half-drum and bin seen from above"><h3>Cut the drum in half</h3><p>A full drum left nowhere for the conveyor to reach into, so light items fell beside it. Removing the top half fixed the handoff. It now rocks instead of spins.</p><span class="verdict yes">Half-drum</span></div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ─────────── 3. The machine ─────────── -->
+<section id="machine" class="ch tall" data-ch="machine" data-label="The machine">
+  <div class="stick left">
+    <div class="panel">
+      <p class="eyebrow">The machine</p>
+      <h2>Three subsystems on a borrowed rover.</h2>
+      <p>The module rides on two 4040 rails on a Botsync Copernicus. Each subsystem comes off by hand on 10 mm quick-release pins, because wet sand packs into everything and someone has to clear it at the end of a shift.</p>
+      <ul class="legend" data-legend>
+        <li data-part="conveyor"><i style="--c:#2a50c7"></i><b>Conveyor</b> lifts debris, with the sand around it</li>
+        <li data-part="drum"><i style="--c:#d8590f"></i><b>Half-drum</b> shakes wet sand off the debris</li>
+        <li data-part="bin"><i style="--c:#13917f"></i><b>Tray and bin</b> keep sand and debris apart</li>
+        <li data-part="carrier"><i style="--c:#5c6670"></i><b>Copernicus</b> drives, by remote control</li>
+      </ul>
+      <p class="fine">Drag to look around. This is the team's real model, repainted to match the photos. Overall 1630 × 726 × 926 mm.</p>
+    </div>
+  </div>
+</section>
+
+<section id="conveyor" class="ch tall" data-ch="conveyor" data-label="Conveyor" data-owner="Russell, Yizhang">
+  <div class="stick left">
+    <div class="panel">
+      <p class="eyebrow">Stage 1 · Built by Russell and Yizhang</p>
+      <h2>Conveyor</h2>
+      <p>Hooked spokes on a mesh belt dig under debris and carry it uphill. Stage one doesn't try to separate anything. Loose sand just drops through the belt on the way up.</p>
+      <dl class="spec" data-spec>
+        <div data-part="c_skid"><dt>Skid</dt><dd>Cut from 7 to 5 cm, then locked, because free-pivoting skids blocked the machine</dd></div>
+        <div data-part="c_belt"><dt>Spokes</dt><dd>Printed hooks on a 350 mm belt with 10 mm aperture</dd></div>
+        <div data-part="c_drive"><dt>Drive</dt><dd>24 V, 40 W gearmotor, 3:1 timing belt. The 1:1 drive stalled</dd></div>
+        <div data-part="c_paddle"><dt>Paddle</dt><dd>Passive tri-flap, added after large light items got pushed ahead of the intake</dd></div>
+        <div data-part="c_mount"><dt>Mount</dt><dd>Two 10 mm quick-release pins, no tools</dd></div>
+      </dl>
+      <figure class="inline-photo"><img loading="lazy" src="media/tines-raking.webp" alt="Black curved tines raking through sand"><figcaption>The real thing, raking the sandpit</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="drum" class="ch tall" data-ch="drum" data-label="Half-drum" data-owner="Ming Yuan, Gary">
+  <div class="stick right">
+    <div class="panel">
+      <p class="eyebrow">Stage 2 · Built by Ming Yuan and Gary</p>
+      <h2>Half-drum</h2>
+      <p>A flat sieve clogs on damp sand. So the half-drum throws the load against its mesh, and the knocks free the sand that gravity alone wouldn't.</p>
+      <dl class="spec" data-spec>
+        <div data-part="d_drum"><dt>Screen</dt><dd>5 mm aluminium mesh between two halved 34 cm bicycle rims</dd></div>
+        <div data-part="d_wheels"><dt>Carriers</dt><dd>Inline skate wheels sized to the rim channel. Castors sat loose and let it wander</dd></div>
+        <div data-part="d_drive"><dt>Drive</dt><dd>Sprung friction wheel, on its fourth try after capstan rope and GT2 belt both slipped</dd></div>
+        <div data-part="d_frame"><dt>Stroke</dt><dd>Rocks between two limit switches, coasting 150 ms at each end</dd></div>
+      </dl>
+      <figure class="inline-video"><video muted loop playsinline preload="none" data-autoplay poster="media/halfdrum-separating.webp" src="media/clogging.mp4"></video><figcaption>Wet sand clogging an earlier version. This clip is why the design kept changing.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="tray" class="ch tall" data-ch="tray" data-label="Tray and bin" data-owner="Gary, Ming Yuan">
+  <div class="stick left">
+    <div class="panel">
+      <p class="eyebrow">Stage 3 · Built by Gary and Ming Yuan</p>
+      <h2>Tray and bin</h2>
+      <p>Sand falls through the screen onto a tray, and debris carries on over the back into a bin. One worker lifts a single bin rather than dozens of piles.</p>
+      <dl class="spec" data-spec>
+        <div data-part="b_vplate"><dt>V plate</dt><dd>Acrylic, keeps sand off the drum motor and steers it to the tray</dd></div>
+        <div data-part="b_tray"><dt>Tray</dt><dd>1 mm aluminium, about 2.9 L</dd></div>
+        <div data-part="b_bin"><dt>Bin</dt><dd>Mesh, at the rear, where it counterbalances the conveyor</dd></div>
+        <div data-part="b_pins"><dt>Pins</dt><dd>Moved to the rear after the first mount bent under a 10 kg load</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section id="electronics" class="ch tall" data-ch="electronics" data-label="Electronics" data-owner="Wonje">
+  <div class="stick right">
+    <div class="panel wide">
+      <p class="eyebrow">Power and control · Built by Wonje</p>
+      <h2>Its own battery, its own brain.</h2>
+      <p>The carrier's spare 24 V rail turned out to be a current-limited fan output with no published rating. So the module got a separate 24 V, 504 Wh sodium-ion pack, and can be built, tested and removed without touching the rover.</p>
+      <figure class="wiring"><a href="media/wiring.webp"><img loading="lazy" src="media/wiring.webp" alt="Wiring diagram of the battery, breaker, fuse, motor driver, Arduino Mega, motors and limit switches"></a></figure>
+      <dl class="spec plain">
+        <div><dt>Controller</dt><dd>Arduino Mega 2560. Replaced a Raspberry Pi, whose 3.3 V logic didn't suit the driver</dd></div>
+        <div><dt>Driver</dt><dd>XY160D dual H-bridge, about 7 A per channel</dd></div>
+        <div><dt>Switches</dt><dd>Normally closed, so a broken wire reads the same as a hit and the drum stops</dd></div>
+        <div><dt>Runtime</dt><dd>Roughly 6 h at about 80 W <span class="tag e">Nameplate estimate</span></dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── 4. One pass ─────────── -->
+<section id="pass" class="ch xtall" data-ch="pass" data-label="One pass">
+  <div class="stick left">
+    <div class="panel slim">
+      <p class="eyebrow">In operation</p>
+      <h2>One pass.</h2>
+      <ol class="steps" data-steps>
+        <li><b>Collect.</b> An operator drives along the wet band. The skid sets a shallow dig, and the spokes lift debris with its sand.</li>
+        <li><b>Separate.</b> The half-drum rocks the load. Wet sand falls through onto the tray.</li>
+        <li><b>Store.</b> Debris rolls on into the bin, ready to tip out at the utility vehicle.</li>
+      </ol>
+      <p class="fine note">This animation shows the idea, not a result. <a href="#bench">The real numbers are next.</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── 5. Evidence ─────────── -->
+<section id="bench" class="ch" data-ch="bench" data-label="Bench test">
+  <div class="sheet">
+    <p class="eyebrow">Evidence · Bench test 1 · 19 Oct 2026</p>
+    <h2>What actually happened in the sandpit.</h2>
+    <p class="sheet-lede">Sixteen items, in dry and wet sand, 45 logged attempts. <strong>Tap any square to jump the video to that attempt.</strong></p>
+    <div class="bench">
+      <div class="bench-left">
+        <div class="bench-totals" id="bench-totals"></div>
+        <div id="bench-grid" class="bench-grid"></div>
+        <div class="bench-key">
+          <span><i class="k pass1"></i>Passed first try</span>
+          <span><i class="k pass2"></i>Passed after retries</span>
+          <span><i class="k fail"></i>Never passed</span>
+        </div>
+        <p class="fine">The log records pass or fail, but doesn't define "pass" (intake, or reaching the bin). Read these as what the team scored at the time, on a sandpit whose moisture wasn't measured.</p>
+      </div>
+      <figure class="bench-video">
+        <video id="bench-video" controls muted playsinline preload="metadata" poster="media/benchtest1-poster.webp" src="media/benchtest1.mp4"></video>
+        <figcaption id="bench-now">Pick an attempt, or press play for all eight minutes.</figcaption>
+      </figure>
+    </div>
+    <div class="fixes">
+      <h3>What it told us to change</h3>
+      <div class="fix-grid">
+        <figure><img loading="lazy" src="media/cap-slips.webp" alt="A bottle cap slipping between the tines"><figcaption><b>Small rigid items slip between spokes.</b> Added mesh strips along them.</figcaption></figure>
+        <figure><img loading="lazy" src="media/debris-set.webp" alt="The set of test debris laid out"><figcaption><b>Large light items get pushed ahead.</b> Added the tri-flap paddle.</figcaption></figure>
+        <figure><img loading="lazy" src="media/wet-plate.webp" alt="Wet sand heaped on the plate under the drum"><figcaption><b>Sand heaps up under the drum.</b> Lands on the V plate rather than the tray. Partly open.</figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="iterate" class="ch" data-ch="iterate" data-label="Iterations">
+  <div class="sheet tint">
+    <p class="eyebrow">Iteration log</p>
+    <h2>Every fix, and whether it held.</h2>
+    <div class="table-wrap">
+    <table class="log">
+      <thead><tr><th>Problem</th><th>Change</th><th>Build</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr class="grp"><td colspan="4">Conveyor</td></tr>
+        <tr><td>Skids pivot and block forward motion</td><td>Skids locked</td><td>B2.0</td><td><span class="r ok">Fixed</span></td></tr>
+        <tr><td>Motor stalls while digging</td><td>3:1 belt drive</td><td>B3.0</td><td><span class="r ok">Fixed</span> no stalls in bench test 1</td></tr>
+        <tr><td>Bucket-scoop spokes stall the motor</td><td>Scoops dropped, hooks kept</td><td>B2.0</td><td><span class="r no">Rejected</span></td></tr>
+        <tr><td>Debris not handed into the drum</td><td>Conveyor lengthened, brush dropped</td><td>B3.0</td><td><span class="r ok">Fixed</span></td></tr>
+        <tr><td>Small, medium and flat items missed</td><td>Skids cut from 7 to 5 cm</td><td>B3.0</td><td><span class="r part">Partly</span> long items pass; others still short of target</td></tr>
+        <tr class="grp"><td colspan="4">Half-drum</td></tr>
+        <tr><td>Drum too small for the belt</td><td>Printed 28 cm rim to 34 cm bicycle rim</td><td>B1.0</td><td><span class="r ok">Fixed</span></td></tr>
+        <tr><td>Rim drifts out of line when turning</td><td>Skate wheels sized to the channel</td><td>B2.0</td><td><span class="r ok">Fixed</span></td></tr>
+        <tr><td>Sand and debris have nowhere to go</td><td>Half-drum with limit-switch stroke</td><td>B3.0</td><td><span class="r part">Partly</span> no debris through the mesh; sand lands on the V plate</td></tr>
+        <tr class="grp"><td colspan="4">Tray and bin</td></tr>
+        <tr><td>Bin bends back under a 10 kg load</td><td>Pins moved to the rear, pushers added</td><td>B4.0</td><td><span class="r ok">Fixed</span> travel at full load untested</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<section id="score" class="ch" data-ch="score" data-label="Scorecard">
+  <div class="sheet">
+    <p class="eyebrow">Honest scorecard</p>
+    <h2>Five of ten requirements at least partly met.</h2>
+    <p class="sheet-lede">As of build B4.0. <em>Target</em> means we set the number and haven't shown it yet. Quoted on purpose, because our examiners' rule is "no numbers, don't talk about it".</p>
+    <div class="score" id="score-list"></div>
+    <aside class="pending">
+      <h3>Field test</h3>
+      <p>Sentosa field testing was scheduled for 1 Nov 2026. Results will go here once they're written up. Until then, nothing on this page should be read as a field result.</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ─────────── 6. Timeline ─────────── -->
+<section id="timeline" hidden class="ch" data-ch="timeline" data-label="Timeline">
+  <div class="sheet wide tint">
+    <p class="eyebrow">What was actually done, and when</p>
+    <h2>The Gantt chart we planned, against what happened.</h2>
+    <p class="sheet-lede" id="gantt-lede">Rebuilt from the team's project chat, so the dates are the days things actually happened. Tap a bar for what came of it.</p>
+    <div class="gantt-controls" id="gantt-controls"></div>
+    <div id="gantt" class="gantt" tabindex="0" role="region" aria-label="Project timeline, scrollable"></div>
+    <div id="gantt-detail" class="gantt-detail" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- ─────────── 7. Team ─────────── -->
+<section id="team" class="ch tall endcap" data-ch="team" data-label="Team">
+  <div class="stick center">
+    <div class="panel team">
+      <p class="eyebrow">Beach Boys Labs</p>
+      <h2>Five students and a lot of sand.</h2>
+      <ul class="people">
+        <li><b>Jeon Wonje</b><span>Electronics, power, firmware</span><a href="https://github.com/jeonwonje">jeonwonje</a></li>
+        <li><b>Kow Ming Yuan</b><span>Half-drum, tray, test lead</span><a href="https://github.com/Kmyming">Kmyming</a></li>
+        <li><b>Chen Zhi Yi Gary</b><span>Half-drum, tray and bin</span><a href="https://github.com/garychen177">garychen177</a></li>
+        <li><b>Ng Jing Jie Russell</b><span>Conveyor, carrier repair</span><a href="https://github.com/Russell501">Russell501</a></li>
+        <li><b>Wang Yizhang</b><span>Conveyor, carrier repair</span><a href="https://github.com/eggsacc">eggsacc</a></li>
+      </ul>
+      <p class="fine">Supervised by Nicholas Chew and Royston Shieh. Automation and Robotics Studio, Innovation and Design Programme, College of Design and Engineering, NUS.</p>
+      <div class="cta">
+        <a class="btn" href="https://github.com/jeonwonje/beachboys">Source on GitHub</a>
+      </div>
+      <p class="credits">Carrier model from <a href="https://github.com/botsync/copernicus">botsync/copernicus</a> (BSD-3-Clause). Built with <a href="https://threejs.org">three.js</a>. No relation to the band.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<noscript><style>#loader,#stage,#grade{display:none}</style></noscript>
+</body>
+</html>
