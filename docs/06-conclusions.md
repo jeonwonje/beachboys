@@ -46,9 +46,23 @@ Source: Report 3.1, 3.2, 4.1.3, 4.3, Appendices E, H, firmware source file.
 
 ## 6.4 References
 
-Numbers match the report. This list includes only the references that these documents use. Reference [18] holds the full test methods, the per-item run grids and the session records.
+Numbers match the report. This list includes only the references that these documents use.
 
 [1] Z. Lim, "97% of plastic trash on Singapore's beaches originate from offshore sources: NEA study," *The Straits Times*, Jan. 15, 2025. [Online](https://www.straitstimes.com/singapore/environment/97-of-plastic-trash-on-singapores-beaches-originate-from-offshore-sources-nea-study) (accessed Nov. 4, 2026).
+
+[9] University of Alaska Fairbanks, "AMIT 145: Lesson 1, Industrial screens," Mining Mill Operator Training, 2020. [Online](https://millops.community.uaf.edu/?p=1349) (accessed Nov. 4, 2026).
+
+[10] E. Foekema, S. Kühn, K. Elschot, and M. van Puijenbroek, "Inventory of aspects related to cleaning up microplastics after maritime incidents," Wageningen Marine Research, Den Helder, The Netherlands, Rep. C095/21B, Dec. 2021. [Online](https://noordzeeloket.nl/publish/pages/231182/inventory-of-aspects-related-to-cleaning-up-microplastics-after-maritime-incidents-wur-2021-.pdf) (accessed Nov. 4, 2026).
+
+[11] M. Smalley, "Best practices: Screening," *Pit & Quarry*, Jul. 17, 2015. [Online](https://www.pitandquarry.com/best-practices-screening/) (accessed Nov. 4, 2026).
+
+[12] Environmental Protection and Management (Boundary Noise Limits for Factory Premises) Regulations, Rg 1, 2008 Rev. Ed., Singapore. [Online](https://sso.agc.gov.sg/SL/EPMA1999-RG1) (accessed Nov. 4, 2026).
+
+[13] K. S. Pearsons, R. L. Bennett, and S. Fidell, "Speech levels in various noise environments," U.S. Environmental Protection Agency, Washington, DC, USA, Rep. EPA-600/1-77-025, May 1977. [Online](https://www.nonoise.org/epa/Roll2/roll2doc16.pdf) (accessed Nov. 4, 2026).
+
+[14] *Safety of machinery — Emergency stop function — Principles for design*, ISO 13850:2015.
+
+[15] *Safety of machinery — Electrical equipment of machines — Part 1: General requirements*, IEC 60204-1:2016.
 
 [18] G. Chen, W. Jeon, M. Y. Kow, R. Ng, and Y. Wang, "ASI-301 build and test log: test programme specification, metrics, problem register and session logs," CDE3301 project document, National University of Singapore, Nov. 2026.
 
