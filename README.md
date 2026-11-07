@@ -33,11 +33,3 @@ On Palawan Beach, the wet band's cross-slope tipped debris off the conveyor befo
 6. [Conclusions](docs/06-conclusions.md): future work, open items and references
 
 [Engineering files](hardware/README.md): full CAD assembly, wiring diagrams, firmware and laser-cut case.
-
-## Notes
-
-- The facts come from the ASI-301 design report. Figures and tables keep the report's numbers.
-- The text follows the structural rules of ASD-STE100, through the [asd-ste100 skill](https://github.com/danyuchn/asd-ste100-skill). It is not certified STE.
-- These documents do not name the beach cleaning contractor or its staff.
-- `web/` holds the source of the 3D site. Pushes to `main` that change `web/` deploy it.
-- This repository does not have a licence yet. The Copernicus files have their [own licence](hardware/carrier/LICENSE-botsync-copernicus.txt).
