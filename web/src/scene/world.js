@@ -109,14 +109,56 @@ function makeSky(uniforms) {
   return mesh;
 }
 
-function makeGround(uniforms) {
+// A grid whose cells grow with distance from the centre, for a ground with relief.
+function makeTerrainGrid(half = 110, cell = 0.4) {
+  const n = half * 2 + 1;
+  const warp = (a) => a * cell * (1 + (a / half) ** 4 * 30);
+  const pos = new Float32Array(n * n * 3);
+  const idx = new Uint32Array((n - 1) * (n - 1) * 6);
+  let k = 0;
+  for (let j = 0; j < n; j++) {
+    for (let i = 0; i < n; i++) {
+      const v = (j * n + i) * 3;
+      pos[v] = warp(i - half);
+      pos[v + 2] = warp(j - half);
+      if (i < n - 1 && j < n - 1) {
+        const a = j * n + i;
+        idx.set([a, a + n, a + 1, a + 1, a + n, a + n + 1], k);
+        k += 6;
+      }
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setIndex(new THREE.BufferAttribute(idx, 1));
+  return g;
+}
+
+function makeGround(uniforms, terrain) {
   const mat = new THREE.ShaderMaterial({
     uniforms,
-    vertexShader: /* glsl */ `
+    defines: terrain ? { TERRAIN: 1 } : {},
+    vertexShader: terrain
+      ? /* glsl */ `
+      uniform vec2 uCenter;
+      ${terrain.glsl}
+      varying vec3 vW;
+      varying vec3 vN;
+      void main(){
+        vec2 xz = position.xz + uCenter;
+        float h = terrainH(xz);
+        vW = vec3(xz.x,h,xz.y);
+        vN = normalize(vec3(h-terrainH(xz+vec2(.35,0.)),.35,h-terrainH(xz+vec2(0.,.35))));
+        gl_Position = projectionMatrix*viewMatrix*vec4(vW,1.);
+      }`
+      : /* glsl */ `
       varying vec3 vW;
       void main(){ vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
     fragmentShader: /* glsl */ `
       varying vec3 vW;
+      #ifdef TERRAIN
+      varying vec3 vN;
+      #endif
       uniform float uTime, uRoverX, uStartX, uShore, uPathZ, uHighlight;
       uniform vec3 uSunDir, uSunColor, uHorizon, uTop, uSea, uCam;
       ${NOISE}
@@ -200,6 +242,13 @@ function makeGround(uniforms) {
           col = mix(col,vec3(.97,.98,.96),clamp(foam*.95+lace*.45+swell*.28,0.,1.));
         }
 
+        #ifdef TERRAIN
+        // Relief catches the sun, and the beach gives way to grass inland.
+        col *= clamp(.45+.55*dot(normalize(vN),uSunDir)/max(uSunDir.y,.25),.72,1.22);
+        float grass = 1.-smoothstep(-37.,-31.,p.y+(fbm(p*.3)-.5)*5.);
+        col = mix(col,vec3(.25,.36,.16)*(.8+.4*fbm(p*.7)),grass);
+        #endif
+
         // Light.
         float lit = .78 + .32*max(uSunDir.y,0.);
         col *= mix(vec3(1.),uSunColor,.22)*lit;
@@ -211,7 +260,7 @@ function makeGround(uniforms) {
         #include <colorspace_fragment>
       }`,
   });
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2400, 2400).rotateX(-Math.PI / 2), mat);
+  const mesh = new THREE.Mesh(terrain ? makeTerrainGrid() : new THREE.PlaneGeometry(2400, 2400).rotateX(-Math.PI / 2), mat);
   mesh.frustumCulled = false;
   // Drawn after the machine, so sand hidden behind it is never shaded.
   mesh.renderOrder = 1;
@@ -268,7 +317,28 @@ function makeHorizon() {
   return group;
 }
 
-export function createWorld(scene, renderer) {
+// Image-based light from a simple sky and sand gradient, so metal has something
+// to reflect without shipping an HDR.
+export function makeEnvironment(renderer) {
+  const s = new THREE.Scene();
+  const m = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    vertexShader: 'varying vec3 d; void main(){ d=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+    fragmentShader: `varying vec3 d; void main(){
+      float h=normalize(d).y;
+      vec3 sky=mix(vec3(1.05,1.05,1.02),vec3(.32,.56,.92),smoothstep(0.,.75,h));
+      vec3 sand=mix(vec3(.72,.6,.44),vec3(.5,.42,.32),smoothstep(0.,-.6,h));
+      gl_FragColor=vec4(h>0.?sky:sand,1.); }`,
+  });
+  s.add(new THREE.Mesh(new THREE.SphereGeometry(10, 24, 16), m));
+  const pm = new THREE.PMREMGenerator(renderer);
+  const tex = pm.fromScene(s, 0.04).texture;
+  pm.dispose();
+  return tex;
+}
+
+// terrain: optional { glsl } that defines `float terrainH(vec2 xz)` using uLevel.
+export function createWorld(scene, renderer, { terrain, shadowReach = 2.4 } = {}) {
   const shared = {
     uNoise: { value: makeNoiseTexture(Math.min(4, renderer.capabilities.getMaxAnisotropy())) },
     uTime: { value: 0 },
@@ -283,10 +353,12 @@ export function createWorld(scene, renderer) {
     uHorizon: { value: new THREE.Color() },
     uSea: { value: new THREE.Color() },
     uCam: { value: new THREE.Vector3() },
+    uCenter: { value: new THREE.Vector2() },
+    uLevel: { value: 0 },
   };
 
   const sky = makeSky(shared);
-  const ground = makeGround(shared);
+  const ground = makeGround(shared, terrain);
   const horizon = makeHorizon();
   scene.add(sky, ground, horizon);
 
@@ -296,13 +368,25 @@ export function createWorld(scene, renderer) {
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.02;
-  Object.assign(sun.shadow.camera, { left: -2.4, right: 2.4, top: 2.4, bottom: -2.4, near: 0.5, far: 24 });
+  Object.assign(sun.shadow.camera, { left: -shadowReach, right: shadowReach, top: shadowReach, bottom: -shadowReach, near: 0.5, far: 24 });
   scene.add(hemi, sun, sun.target);
 
+  const shadowMat = new THREE.ShadowMaterial({ opacity: 0.34, color: '#2a1d10' });
+  const patch = shadowReach * 2.5; // the shadow camera's reach
   const shadowPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(6, 6).rotateX(-Math.PI / 2), // the shadow camera's reach
-    new THREE.ShadowMaterial({ opacity: 0.34, color: '#2a1d10' }),
+    terrain ? new THREE.PlaneGeometry(patch, patch, 56, 56).rotateX(-Math.PI / 2) : new THREE.PlaneGeometry(patch, patch).rotateX(-Math.PI / 2),
+    shadowMat,
   );
+  if (terrain) {
+    // Sand has no lit material of its own, so this sheet follows the relief to catch shadows.
+    shadowPlane.frustumCulled = false;
+    shadowMat.onBeforeCompile = (shader) => {
+      shader.uniforms.uLevel = shared.uLevel;
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', `#include <common>\n${terrain.glsl}`)
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed.y += terrainH((modelMatrix*vec4(position,1.)).xz);');
+    };
+  }
   shadowPlane.position.y = 0.002;
   shadowPlane.receiveShadow = true;
   scene.add(shadowPlane);
@@ -348,13 +432,18 @@ export function createWorld(scene, renderer) {
       scene.environmentIntensity = a.env + (b.env - a.env) * f;
       horizon.userData.mat.color.copy(shared.uHorizon.value).lerp(shared.uTop.value, 0.42);
     },
-    update(time, cameraPos, focusX) {
+    update(time, cameraPos, focusX, focusZ = PATH_Z, focusY = 0.3) {
       shared.uTime.value = time;
       shared.uCam.value.copy(cameraPos);
-      sun.target.position.set(focusX, 0.3, PATH_Z);
+      sun.target.position.set(focusX, focusY, focusZ);
       sun.position.copy(sun.target.position).addScaledVector(shared.uSunDir.value, 10);
       shadowPlane.position.x = focusX;
-      shadowPlane.position.z = PATH_Z;
+      shadowPlane.position.z = focusZ;
+      if (terrain) {
+        // Keep the grid on whole cells, so its vertices don't swim over the relief.
+        shared.uCenter.value.set(Math.round(cameraPos.x / 0.4) * 0.4, Math.round(cameraPos.z / 0.4) * 0.4);
+        shadowPlane.position.y = 0.012;
+      }
     },
   };
 }

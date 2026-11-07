@@ -12,7 +12,7 @@ const rand = (() => {
   };
 })();
 
-function shapes() {
+export function shapes() {
   const bottle = new THREE.CylinderGeometry(0.032, 0.036, 0.19, 10).rotateZ(Math.PI / 2);
   const neck = new THREE.CylinderGeometry(0.013, 0.03, 0.05, 8).rotateZ(-Math.PI / 2).translate(0.118, 0, 0);
   return [
@@ -130,8 +130,8 @@ export function createDebris(scene, { startX = 0.9, endX = 44, count = 300 } = {
 
 // What the machine is doing inside: items riding up the belt, tumbling in the
 // half-drum and landing in the bin, with sand falling out at each stage.
-export function createFlow(lift) {
-  const path = new THREE.CatmullRomCurve3(
+export function flowPath() {
+  return new THREE.CatmullRomCurve3(
     [
       [0.93, GROUND_Y + 0.03, 0],
       [0.82, -0.08, 0],
@@ -149,6 +149,11 @@ export function createFlow(lift) {
     'catmullrom',
     0.5,
   );
+}
+
+// showCarried false leaves the sand and the bin pile, for a caller that draws its own items.
+export function createFlow(lift, { showCarried = true } = {}) {
+  const path = flowPath();
 
   const palette = ['#c8352b', '#bfe4ea', '#f0b429', '#6c4b2d', '#2fa18e', '#e8e8e4', '#3166b0', '#d96b24'];
   const N = 16;
@@ -216,7 +221,7 @@ export function createFlow(lift) {
     update(dt, { flow, fill }) {
       t += dt * flow;
       const visible = flow > 0.02;
-      carried.visible = visible;
+      carried.visible = visible && showCarried;
       sand.visible = visible;
       if (visible) {
         for (let i = 0; i < N; i++) {

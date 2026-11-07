@@ -37,6 +37,8 @@ const DRUM_PIVOT = new THREE.Vector3(-0.33, 0.431, 0);
 const DRUM_AXIS = new THREE.Vector3(0.102, 0.506, 0).sub(DRUM_PIVOT).normalize();
 const DRUM_SWING = THREE.MathUtils.degToRad(23);
 const DRUM_PERIOD = 0.943;
+// A jammed conveyor folds back about its pivot at the head.
+const FOLD_PIVOT = new THREE.Vector3(0.256, 0.447, 0);
 
 // Colours picked off the photos of the real machine.
 const PAINT = {
@@ -276,6 +278,8 @@ export async function loadRover(url, onProgress) {
     },
     update(dt, s) {
       // s: { explode, focus, belt, rock, rockAmp, roll, highlight }
+      // Optional: rollL and rollR turn each side's wheels apart, and fold swings
+      // the conveyor back about its pivot, in radians.
       state.dist += dt * s.belt * BELT_SPEED;
       state.drumPhase += (dt * s.rock * 2 * Math.PI) / DRUM_PERIOD;
       state.paddleAngle += dt * s.belt * 1.8;
@@ -305,8 +309,9 @@ export async function loadRover(url, onProgress) {
           // Driving towards +x turns the wheels clockwise seen from +z. The top
           // of the belt runs towards the head, which turns the sprockets the
           // other way. The paddle ratchets counter-clockwise.
+          const wheelRoll = p.key[9] === 'l' ? (s.rollL ?? s.roll) : (s.rollR ?? s.roll);
           const angle = p.key.startsWith('k_wheel')
-            ? -s.roll / WHEEL_R
+            ? -wheelRoll / WHEEL_R
             : p.key === 'c_paddle_spin'
               ? state.paddleAngle
               : state.dist / SPROCKET_R;
@@ -318,6 +323,11 @@ export async function loadRover(url, onProgress) {
           p.group.quaternion.copy(q);
           const pv = DRUM_PIVOT.clone();
           p.group.position.add(pv.clone().sub(pv.applyQuaternion(q)));
+        }
+        if (s.fold && p.sub === 'conveyor') {
+          q.setFromAxisAngle(Z, s.fold);
+          p.group.position.sub(FOLD_PIVOT).applyQuaternion(q).add(FOLD_PIVOT);
+          p.group.quaternion.premultiply(q);
         }
 
         let target = p.sub === 'carrier' ? 1 - 0.8 * maxFocus : 1 - 0.84 * Math.max(0, maxFocus - f);

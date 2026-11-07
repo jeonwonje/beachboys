@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Wet Band: drive the BeachBoy</title>
+<meta name="description" content="A driving game with the BeachBoy beach-debris machine. Collect debris from the beach before the tide takes it.">
+<meta name="theme-color" content="#16233f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2316233f'/%3E%3Cpath d='M0 21c5-5 11-5 16 0s11 5 16 0v11H0z' fill='%23f4c404'/%3E%3C/svg%3E">
+</head>
+<body>
+<canvas id="stage" aria-label="3D view of the beach and the machine"></canvas>
+
+<div id="hud" hidden>
+  <div class="hud-top">
+    <div class="block clock">
+      <span class="label">Tide</span>
+      <strong id="time">3:00</strong>
+      <div class="meter"><i id="tideBar"></i></div>
+    </div>
+    <div class="block score">
+      <span class="label">Collected</span>
+      <strong><span id="got">0</span><small>/<span id="need">58</span> to reach the target</small></strong>
+      <div class="meter target"><i id="gotBar"></i><b id="lostBar"></b></div>
+    </div>
+    <canvas id="map" width="360" height="176" aria-label="Map of the beach"></canvas>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <div class="hud-bottom">
+    <div class="block gauges">
+      <div><span class="label">Bin</span><strong id="bin">0/16</strong><div class="meter"><i id="binBar"></i></div></div>
+      <div><span class="label">Sand at the skid</span><div class="meter hot"><i id="loadBar"></i></div></div>
+      <div id="jamRow" hidden><span class="label">Clearing the jam</span><div class="meter ok"><i id="jamBar"></i></div></div>
+    </div>
+    <div class="block tilt" id="tiltBlock">
+      <svg viewBox="-60 -44 120 66" aria-hidden="true">
+        <path d="M-50 12 L50 12" stroke="currentColor" opacity=".3" stroke-width="2" id="tiltGround"/>
+        <path d="M8.4 -30.2 L10 -39 M-8.4 -30.2 L-10 -39" stroke="#ff6a5c" stroke-width="3"/>
+        <g id="tiltMachine">
+          <rect x="-22" y="-14" width="44" height="18" rx="2" fill="#d8590f"/>
+          <rect x="-14" y="-29" width="28" height="15" fill="none" stroke="currentColor" stroke-width="3"/>
+          <path d="M0 -29 L0 -40" stroke="#f4c404" stroke-width="3"/>
+          <rect x="-28" y="-4" width="10" height="16" rx="2" fill="currentColor"/>
+          <rect x="18" y="-4" width="10" height="16" rx="2" fill="currentColor"/>
+        </g>
+      </svg>
+      <span class="label">Cross-slope</span>
+      <strong id="tilt">0°</strong>
+    </div>
+  </div>
+</div>
+
+<div id="touch" hidden>
+  <div id="stick"><i></i></div>
+  <button id="stopBtn" type="button">Stop</button>
+</div>
+
+<section id="menu" class="sheet">
+  <div class="card">
+    <p class="kicker">ASI-301 BeachBoy</p>
+    <h1>Wet Band</h1>
+    <p class="lead">Collect the debris before the tide takes it. Your target is 80%, the rate that the real machine had to reach.</p>
+    <ul class="rules">
+      <li><b>Cross-slope.</b> Debris slides off the belt if you lean more than 5°. Face straight up or down the beach until it reaches the drum.</li>
+      <li><b>Jams.</b> Long pieces wedge if you take them fast, and speed on wet sand builds sand at the skid. Reverse to clear a jam.</li>
+      <li><b>Clear-out.</b> The bin holds 16 pieces. Stop in a yellow ring to empty it.</li>
+    </ul>
+    <div class="keys">
+      <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrows drive</span>
+      <span><kbd>Space</kbd> emergency stop</span>
+      <span><kbd>C</kbd> camera</span>
+      <span><kbd>M</kbd> sound</span>
+      <span><kbd>P</kbd> pause</span>
+    </div>
+    <button id="startBtn" class="go" type="button" disabled>Loading the machine</button>
+    <p class="fine">This is a game. Its speeds, slopes and scores are game rules, not test results. The hazards come from the field test in the <a href="./">ASI-301 design report</a>, Section 4.2.</p>
+  </div>
+</section>
+
+<section id="pause" class="sheet" hidden>
+  <div class="card small">
+    <h2>Paused</h2>
+    <button id="resumeBtn" class="go" type="button">Resume</button>
+    <button id="restartBtn" class="plain" type="button">Restart</button>
+  </div>
+</section>
+
+<section id="end" class="sheet" hidden>
+  <div class="card">
+    <p class="kicker" id="endKicker">The tide is in</p>
+    <h2 id="endTitle">0%</h2>
+    <p class="lead" id="endLine"></p>
+    <table class="compare">
+      <thead><tr><th>Collection rate</th><th>You</th><th>Real machine, best in field</th></tr></thead>
+      <tbody>
+        <tr><td>Dry sand</td><td id="endDry">0%</td><td>37.5%</td></tr>
+        <tr><td>Wet sand</td><td id="endWet">0%</td><td>6.3%</td></tr>
+      </tbody>
+    </table>
+    <p class="stats" id="endStats"></p>
+    <button id="againBtn" class="go" type="button">Drive again</button>
+    <p class="fine">Target 80% per class. Field results from Section 4.2 of the design report, Figures 18 and 21. The real clear-out took 5.23 minutes with two people and hand tools. <a href="./">See the machine</a></p>
+  </div>
+</section>
+
+<script type="module" src="/src/game/main.js"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@ import '@fontsource-variable/instrument-sans';
 import '@fontsource/jetbrains-mono/500.css';
 import './styles.css';
 import * as THREE from 'three';
-import { createWorld, PATH_Z } from './scene/world.js';
+import { createWorld, makeEnvironment, PATH_Z } from './scene/world.js';
 import { GROUND_Y, loadRover } from './scene/rover.js';
 import { createDebris, createFlow } from './scene/debris.js';
 import { blend, PINS, resolve } from './story.js';
@@ -311,26 +311,6 @@ async function start3D() {
     stats: () => ({ tris: renderer.info.render.triangles, calls: renderer.info.render.calls, dpr: +dpr.toFixed(2) }),
   };
   requestAnimationFrame(frame);
-}
-
-// Image-based light from a simple sky and sand gradient, so metal has something
-// to reflect without shipping an HDR.
-function makeEnvironment(renderer) {
-  const s = new THREE.Scene();
-  const m = new THREE.ShaderMaterial({
-    side: THREE.BackSide,
-    vertexShader: 'varying vec3 d; void main(){ d=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
-    fragmentShader: `varying vec3 d; void main(){
-      float h=normalize(d).y;
-      vec3 sky=mix(vec3(1.05,1.05,1.02),vec3(.32,.56,.92),smoothstep(0.,.75,h));
-      vec3 sand=mix(vec3(.72,.6,.44),vec3(.5,.42,.32),smoothstep(0.,-.6,h));
-      gl_FragColor=vec4(h>0.?sky:sand,1.); }`,
-  });
-  s.add(new THREE.Mesh(new THREE.SphereGeometry(10, 24, 16), m));
-  const pm = new THREE.PMREMGenerator(renderer);
-  const tex = pm.fromScene(s, 0.04).texture;
-  pm.dispose();
-  return tex;
 }
 
 if (supportsWebGL()) {
